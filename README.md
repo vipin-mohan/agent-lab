@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # agent-lab
 Experiments and prototypes for agentic systems, built with AI-assisted coding
 =======
@@ -28,3 +29,7 @@ Open http://127.0.0.1:8000/
 
 Tasks are stored in `tasks.json` in this folder.
 >>>>>>> 0b539d7 (Initial task API)
+=======
+# agent-lab
+Experiments and prototypes for agentic systems, built with AI-assisted coding
+>>>>>>> 6bd2b0ff9e66103acb79f0b3052216f2ce88a338
