@@ -73,7 +73,6 @@ HTML_PAGE = """
   <div>
     <input type="text" id="taskInput" placeholder="Enter a task" />
     <button id="addBtn">Add task</button>
-    <button id="listBtn">List tasks</button>
     <button id="deleteBtn">Delete selected</button>
   </div>
   <ul id="taskList"></ul>
@@ -81,7 +80,6 @@ HTML_PAGE = """
   <script>
     const input = document.getElementById("taskInput");
     const addBtn = document.getElementById("addBtn");
-    const listBtn = document.getElementById("listBtn");
     const deleteBtn = document.getElementById("deleteBtn");
     const list = document.getElementById("taskList");
 
@@ -130,7 +128,6 @@ HTML_PAGE = """
     }
 
     addBtn.addEventListener("click", addTask);
-    listBtn.addEventListener("click", loadTasks);
     deleteBtn.addEventListener("click", deleteSelected);
     input.addEventListener("keydown", e => { if (e.key === "Enter") addTask(); });
     loadTasks();
