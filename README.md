@@ -1,0 +1,30 @@
+<<<<<<< HEAD
+# agent-lab
+Experiments and prototypes for agentic systems, built with AI-assisted coding
+=======
+# Task API
+
+FastAPI task list app with JSON file persistence.
+
+### Run locally
+
+From this folder (`task-api`):
+
+```bash
+# Optional: virtualenv
+python -m venv venv
+# Windows (Command Prompt): venv\Scripts\activate.bat
+# Windows (PowerShell): venv\Scripts\activate  (may require Set-ExecutionPolicy)
+
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+Or: `python main.py`
+
+Open http://127.0.0.1:8000/
+
+### Data
+
+Tasks are stored in `tasks.json` in this folder.
+>>>>>>> 0b539d7 (Initial task API)

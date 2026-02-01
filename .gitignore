@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+.venv/
+env/
+
+# Local data (optional: remove this line if you want to commit tasks.json)
+# task-api/tasks.json
