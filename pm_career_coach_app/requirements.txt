@@ -2,4 +2,5 @@
 streamlit
 anthropic
 python-dotenv
-
+openai
+google-genai
