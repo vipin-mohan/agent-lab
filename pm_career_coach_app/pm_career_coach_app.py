@@ -8,6 +8,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Upper bound on how long model responses can be.
+# Increase if you still see truncation and your model/provider supports it.
+MAX_OUTPUT_TOKENS = 4096
+
 
 def _get_secret(name: str) -> str | None:
     """Fetch a secret from Streamlit Cloud or environment variables."""
@@ -56,7 +60,7 @@ def call_pm_coach(system_prompt: str, user_content: str) -> str:
             client = Anthropic(api_key=anthropic_key)  # type: ignore[arg-type]
             response = client.messages.create(
                 model="claude-sonnet-4-6",
-                max_tokens=1200,
+                max_tokens=MAX_OUTPUT_TOKENS,
                 temperature=0.7,
                 system=system_prompt,
                 messages=[{"role": "user", "content": user_content}],
@@ -83,7 +87,7 @@ def call_pm_coach(system_prompt: str, user_content: str) -> str:
                 model="gpt-4.1-mini",
                 instructions=system_prompt,
                 input=user_content,
-                max_output_tokens=1200,
+                max_output_tokens=MAX_OUTPUT_TOKENS,
                 temperature=0.7,
             )
             return (response.output_text or "").strip()
@@ -103,6 +107,7 @@ def call_pm_coach(system_prompt: str, user_content: str) -> str:
             response = client.models.generate_content(
                 model="gemini-2.0-flash",
                 contents=f"{system_prompt}\n\n{user_content}",
+                generation_config={"max_output_tokens": MAX_OUTPUT_TOKENS},
             )
             return (getattr(response, "text", "") or "").strip()
 
