@@ -2,7 +2,7 @@
 
 An AI-powered career coaching app for aspiring and current product managers — built with Python, Streamlit, and modern LLMs (Anthropic Claude, OpenAI, and Google Gemini).
 
-**[Live Demo →](https://your-app.streamlit.app)**  <!-- replace with your Streamlit Cloud URL -->
+**[Live Demo →](https://agent-lab-career-coach.streamlit.app/)**  <!-- replace with your Streamlit Cloud URL -->
 
 ---
 
@@ -140,4 +140,4 @@ I'm a product leader with 8+ years at AWS, where I currently lead agentic AI pro
 
 This project sits at the intersection of those two worlds — agentic AI and PM career development.
 
-[LinkedIn](https://linkedin.com/in/your-profile) · [GitHub](https://github.com/your-username)
+[LinkedIn](https://www.linkedin.com/in/vipinmohan) · [GitHub](https://github.com/vipin-mohan)
