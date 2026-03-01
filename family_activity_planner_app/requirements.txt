@@ -1,0 +1,7 @@
+# Core dependencies for Family Activity Planner Streamlit app
+streamlit
+anthropic
+python-dotenv
+openai
+google-genai
+
