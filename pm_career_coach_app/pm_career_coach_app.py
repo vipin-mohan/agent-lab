@@ -9,40 +9,107 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def get_anthropic_client() -> Anthropic | None:
-    api_key = os.getenv("ANTHROPIC_API_KEY")
-    if not api_key:
-        st.error("Anthropic API key not found. Please add ANTHROPIC_API_KEY to your .env file.")
-        return None
+def _get_secret(name: str) -> str | None:
+    """Fetch a secret from Streamlit Cloud or environment variables."""
+    # Streamlit Cloud: app-wide secrets configured in .streamlit/secrets.toml
     try:
-        return Anthropic(api_key=api_key)
-    except Exception as exc:  # pragma: no cover - defensive
-        st.error(f"Error initializing Anthropic client: {exc}")
-        return None
+        value = st.secrets[name]  # type: ignore[index]
+        if value:
+            return str(value)
+    except Exception:
+        pass
+
+    # Local dev: .env file or shell environment
+    return os.getenv(name)
 
 
-def call_claude(system_prompt: str, user_content: str) -> str:
-    client = get_anthropic_client()
-    if client is None:
-        return ""
+def call_pm_coach(system_prompt: str, user_content: str) -> str:
+    """
+    Route the request to Anthropic, OpenAI, or Gemini depending on which API key is available.
 
-    try:
-        response = client.messages.create(
-            model="claude-sonnet-4-6",
-            max_tokens=1200,
-            temperature=0.7,
-            system=system_prompt,
-            messages=[{"role": "user", "content": user_content}],
+    Priority:
+      1. ANTHROPIC_API_KEY
+      2. OPENAI_API_KEY
+      3. GEMINI_API_KEY
+    """
+    anthropic_key = _get_secret("ANTHROPIC_API_KEY")
+    openai_key = _get_secret("OPENAI_API_KEY")
+    gemini_key = _get_secret("GEMINI_API_KEY")
+
+    provider: str | None
+    if anthropic_key:
+        provider = "anthropic"
+    elif openai_key:
+        provider = "openai"
+    elif gemini_key:
+        provider = "gemini"
+    else:
+        st.error(
+            "No model API key found. Please set at least one of "
+            "ANTHROPIC_API_KEY, OPENAI_API_KEY, or GEMINI_API_KEY in your "
+            "Streamlit secrets (secrets.toml) or in a local .env file."
         )
-    except Exception as exc:  # pragma: no cover - defensive
-        st.error(f"Error calling Anthropic Claude API: {exc}")
         return ""
 
-    text_chunks: list[str] = []
-    for block in response.content:
-        if getattr(block, "type", None) == "text":
-            text_chunks.append(block.text)
-    return "".join(text_chunks).strip()
+    try:
+        if provider == "anthropic":
+            client = Anthropic(api_key=anthropic_key)  # type: ignore[arg-type]
+            response = client.messages.create(
+                model="claude-sonnet-4-6",
+                max_tokens=1200,
+                temperature=0.7,
+                system=system_prompt,
+                messages=[{"role": "user", "content": user_content}],
+            )
+            text_chunks: list[str] = []
+            for block in response.content:
+                if getattr(block, "type", None) == "text":
+                    text_chunks.append(block.text)
+            return "".join(text_chunks).strip()
+
+        if provider == "openai":
+            try:
+                # Lazy import so the app still runs if openai is not installed
+                from openai import OpenAI  # type: ignore[import]
+            except ImportError:
+                st.error(
+                    "OpenAI support requires the 'openai' package. "
+                    "Install it with `pip install openai` or unset OPENAI_API_KEY."
+                )
+                return ""
+
+            client = OpenAI(api_key=openai_key)
+            response = client.responses.create(
+                model="gpt-4.1-mini",
+                instructions=system_prompt,
+                input=user_content,
+                max_output_tokens=1200,
+                temperature=0.7,
+            )
+            return (response.output_text or "").strip()
+
+        if provider == "gemini":
+            try:
+                # Lazy import so the app still runs if google-genai is not installed
+                from google import genai  # type: ignore[import]
+            except ImportError:
+                st.error(
+                    "Gemini support requires the 'google-genai' package. "
+                    "Install it with `pip install google-genai` or unset GEMINI_API_KEY."
+                )
+                return ""
+
+            client = genai.Client(api_key=gemini_key)
+            response = client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=f"{system_prompt}\n\n{user_content}",
+            )
+            return (getattr(response, "text", "") or "").strip()
+
+    except Exception as exc:  # pragma: no cover - defensive
+        st.error(f"Error calling language model ({provider}): {exc}")
+
+    return ""
 
 
 BASE_SYSTEM_PROMPT = dedent(
@@ -187,7 +254,7 @@ def render_interview_prep_tab():
     if st.button("Get Interview Coaching", type="primary", key="btn_interview_prep"):
         with st.spinner("Thinking through your PM interview strategy..."):
             system_prompt, user_prompt = build_interview_prep_prompt(background, target_role, questions)
-            answer = call_claude(system_prompt, user_prompt)
+            answer = call_pm_coach(system_prompt, user_prompt)
         if answer:
             st.markdown("### Coaching Recommendations")
             st.markdown(answer)
@@ -222,7 +289,7 @@ def render_gap_analysis_tab():
     if st.button("Run Gap Analysis", type="primary", key="btn_gap_analysis"):
         with st.spinner("Analyzing your profile against PM expectations..."):
             system_prompt, user_prompt = build_gap_analysis_prompt(background, target_role, current_skills)
-            answer = call_claude(system_prompt, user_prompt)
+            answer = call_pm_coach(system_prompt, user_prompt)
         if answer:
             st.markdown("### Gap Analysis and Development Plan")
             st.markdown(answer)
@@ -256,7 +323,7 @@ def render_career_positioning_tab():
     if st.button("Refine My Positioning", type="primary", key="btn_career_positioning"):
         with st.spinner("Crafting your PM career narrative..."):
             system_prompt, user_prompt = build_career_positioning_prompt(background, target_companies, narrative)
-            answer = call_claude(system_prompt, user_prompt)
+            answer = call_pm_coach(system_prompt, user_prompt)
         if answer:
             st.markdown("### Positioning and Narrative")
             st.markdown(answer)
@@ -265,7 +332,7 @@ def render_career_positioning_tab():
 def main():
     st.set_page_config(page_title="PM Career Coach", layout="wide")
     st.title("PM Career Coach")
-    st.caption("Anthropic Claude-powered career coaching for aspiring and current product managers.")
+    st.caption("AI-powered career coaching for aspiring and current product managers.")
 
     tab_interview, tab_gap, tab_positioning = st.tabs(
         ["Interview Prep", "Gap Analysis", "Career Positioning"]
