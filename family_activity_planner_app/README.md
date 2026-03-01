@@ -2,7 +2,7 @@
 
 An AI-powered app that helps busy parents plan age-appropriate, location-aware family activities — built with Python, Streamlit, and Claude (Anthropic).
 
-**[Live Demo →](https://your-app.streamlit.app)** *(replace with your Streamlit Cloud URL)*
+**[Live Demo →](https://family-activity-planner.streamlit.app/)**
 
 ---
 
@@ -98,4 +98,4 @@ ANTHROPIC_API_KEY = "sk-ant-..."
 
 I'm a product leader at AWS focused on agentic AI, and a parent of two. I built this because I needed it — and because the best products come from real problems.
 
-[LinkedIn](https://linkedin.com/in/your-profile) · [GitHub](https://github.com/your-username)
+[LinkedIn](https://www.linkedin.com/in/vipinmohan) · [GitHub](https://github.com/vipin-mohan)
