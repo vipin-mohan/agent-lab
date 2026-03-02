@@ -8,13 +8,14 @@ An AI-powered career coaching app for aspiring and current product managers — 
 
 ## What It Does
 
-PM Career Coach gives you structured, personalized coaching across three key areas of your PM job search:
+PM Career Coach gives you structured, personalized coaching across four key areas of your PM job search:
 
 - **Interview Prep**: Paste your background and target role, and get tailored PM interview questions, STAR-structured story guidance, and delivery tips specific to your experience.
 - **Gap Analysis**: Understand where you stand relative to hiring expectations for your target roles, and get a concrete 30–90 day development plan to close the most important gaps.
 - **Career Positioning**: Craft a compelling PM narrative, positioning statement, and reusable lines for your resume, LinkedIn headline, and recruiter conversations.
+- **Job Match Score**: Paste your resume and a job description side by side, and get a structured match analysis — an overall score out of 10, your strongest signals, gaps to address, positioning guidance, and specific resume tweaks to improve your fit.
 
-All three flows share a common core: an expert PM career coach persona with 10+ years of experience working with MBA students and early-career PMs.
+All four flows share a common foundation: an expert PM career coach persona with 10+ years of experience working with MBA students and early-career PMs.
 
 ---
 

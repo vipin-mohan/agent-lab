@@ -300,6 +300,80 @@ def render_gap_analysis_tab():
             st.markdown(answer)
 
 
+JOB_MATCH_SYSTEM_PROMPT = (
+    "You are an expert PM recruiter and career coach who has reviewed thousands of PM resumes "
+    "and job descriptions at top tech companies. Given a resume and job description, score the "
+    "match from 1–10 based on: skills alignment, domain experience, seniority fit, and "
+    "language/keyword match. Be direct and specific — reference actual content from both the "
+    "resume and JD, not generic advice. A score of 7+ means strong candidate, 5–6 means viable "
+    "with positioning work, below 5 means significant gaps exist."
+)
+
+
+def build_job_match_prompt(resume: str, job_description: str) -> tuple[str, str]:
+    user_content = dedent(
+        f"""
+        Here is my resume:
+        {resume}
+
+        Here is the job description:
+        {job_description}
+
+        Please evaluate my fit and return your response in exactly this format:
+
+        ## Match Score: X/10
+
+        ### ✅ Strong Matches (what's working in your favor)
+        - ...
+
+        ### ⚠️ Gaps to Address (what's missing or weak)
+        - ...
+
+        ### 💡 How to Position Yourself for This Role
+        - ...
+
+        ### 📝 Suggested Resume Tweaks
+        - ...
+        """
+    ).strip()
+
+    return JOB_MATCH_SYSTEM_PROMPT, user_content
+
+
+def render_job_match_tab():
+    st.subheader("Job Match Score")
+    st.write(
+        "Paste your resume and a job description to get a structured match analysis — "
+        "including a score out of 10, your strengths, gaps, and specific resume tweaks."
+    )
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        resume = st.text_area(
+            "Your Resume",
+            placeholder="Paste your full resume here",
+            height=400,
+        )
+
+    with col2:
+        job_description = st.text_area(
+            "Job Description",
+            placeholder="Paste the full job description here",
+            height=400,
+        )
+
+    if st.button("Analyze Match", type="primary", key="btn_job_match"):
+        if not resume.strip() or not job_description.strip():
+            st.warning("Please paste both your resume and the job description before submitting.")
+        else:
+            with st.spinner("Scoring your resume against the job description..."):
+                system_prompt, user_prompt = build_job_match_prompt(resume, job_description)
+                answer = call_pm_coach(system_prompt, user_prompt)
+            if answer:
+                st.markdown(answer)
+
+
 def render_career_positioning_tab():
     st.subheader("Career Positioning")
     st.write(
@@ -339,8 +413,8 @@ def main():
     st.title("PM Career Coach")
     st.caption("AI-powered career coaching for aspiring and current product managers.")
 
-    tab_interview, tab_gap, tab_positioning = st.tabs(
-        ["Interview Prep", "Gap Analysis", "Career Positioning"]
+    tab_interview, tab_gap, tab_positioning, tab_job_match = st.tabs(
+        ["Interview Prep", "Gap Analysis", "Career Positioning", "Job Match Score"]
     )
 
     with tab_interview:
@@ -349,6 +423,8 @@ def main():
         render_gap_analysis_tab()
     with tab_positioning:
         render_career_positioning_tab()
+    with tab_job_match:
+        render_job_match_tab()
 
 
 if __name__ == "__main__":
