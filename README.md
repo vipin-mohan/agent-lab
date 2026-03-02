@@ -17,7 +17,7 @@ An app that gives structured, personalized PM interview prep, gap analysis, care
 
 **Why it's different:** The system prompts aren't generic. They encode real coaching patterns from hundreds of actual sessions — what separates strong PM candidates, common storytelling mistakes, and what top tech companies actually look for.
 
-Four tabs: **Interview Prep** · **Gap Analysis** · **Career Positioning** · **Job Match Score** (paste resume + JD, get a score out of 10 with specific gaps and resume tweaks).
+Four tabs: **Interview Prep** · **Gap Analysis** · **Career Positioning** · **Job Match Score**
 
 **Tech:** Python · Streamlit · Claude / OpenAI / Gemini (auto-fallback)
 
