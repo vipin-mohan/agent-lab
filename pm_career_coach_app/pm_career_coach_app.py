@@ -256,7 +256,7 @@ def render_interview_prep_tab():
             height=260,
         )
 
-    if st.button("Get Interview Coaching", type="primary", key="btn_interview_prep"):
+    if st.button("Get Interview Coaching", type="primary", key="btn_interview_prep", use_container_width=True):
         with st.spinner("Thinking through your PM interview strategy..."):
             system_prompt, user_prompt = build_interview_prep_prompt(background, target_role, questions)
             answer = call_pm_coach(system_prompt, user_prompt)
@@ -291,7 +291,7 @@ def render_gap_analysis_tab():
         height=180,
     )
 
-    if st.button("Run Gap Analysis", type="primary", key="btn_gap_analysis"):
+    if st.button("Run Gap Analysis", type="primary", key="btn_gap_analysis", use_container_width=True):
         with st.spinner("Analyzing your profile against PM expectations..."):
             system_prompt, user_prompt = build_gap_analysis_prompt(background, target_role, current_skills)
             answer = call_pm_coach(system_prompt, user_prompt)
@@ -363,7 +363,7 @@ def render_job_match_tab():
             height=400,
         )
 
-    if st.button("Analyze Match", type="primary", key="btn_job_match"):
+    if st.button("Analyze Match", type="primary", key="btn_job_match", use_container_width=True):
         if not resume.strip() or not job_description.strip():
             st.warning("Please paste both your resume and the job description before submitting.")
         else:
@@ -399,7 +399,7 @@ def render_career_positioning_tab():
         height=160,
     )
 
-    if st.button("Refine My Positioning", type="primary", key="btn_career_positioning"):
+    if st.button("Refine My Positioning", type="primary", key="btn_career_positioning", use_container_width=True):
         with st.spinner("Crafting your PM career narrative..."):
             system_prompt, user_prompt = build_career_positioning_prompt(background, target_companies, narrative)
             answer = call_pm_coach(system_prompt, user_prompt)
@@ -408,8 +408,32 @@ def render_career_positioning_tab():
             st.markdown(answer)
 
 
+def _inject_responsive_css() -> None:
+    st.markdown(
+        """
+        <style>
+        /* Stack columns vertically on mobile screens */
+        @media (max-width: 768px) {
+            div[data-testid="column"] {
+                width: 100% !important;
+                flex: 1 1 100% !important;
+                min-width: 100% !important;
+            }
+            .block-container {
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+                padding-top: 2rem !important;
+            }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def main():
     st.set_page_config(page_title="PM Career Coach", layout="wide")
+    _inject_responsive_css()
     st.title("PM Career Coach")
     st.caption("AI-powered career coaching for aspiring and current product managers.")
 

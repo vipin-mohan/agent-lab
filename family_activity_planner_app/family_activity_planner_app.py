@@ -159,67 +159,99 @@ def build_user_message(
     return " ".join(parts)
 
 
+def _inject_responsive_css() -> None:
+    st.markdown(
+        """
+        <style>
+        /* Stack columns vertically on mobile screens */
+        @media (max-width: 768px) {
+            div[data-testid="column"] {
+                width: 100% !important;
+                flex: 1 1 100% !important;
+                min-width: 100% !important;
+            }
+            .block-container {
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+                padding-top: 2rem !important;
+            }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def main():
     st.set_page_config(page_title="Family Activity Planner", layout="wide")
+    _inject_responsive_css()
     st.title("Family Activity Planner")
 
     mode = st.radio("When are you planning for?", ["Weekend", "Weekday Evening"], horizontal=True)
     if mode == "Weekday Evening":
         st.info("All suggestions will be under 60 minutes, perfect for busy weekday evenings.")
 
-    with st.sidebar:
-        st.header("Plan details")
-
+    with st.expander("Plan Details", expanded=True):
         zip_code = st.text_input("Zip code", placeholder="e.g., 95051")
 
-        num_kids = st.number_input(
-            "Number of kids",
-            min_value=1,
-            max_value=6,
-            value=1,
-            step=1,
-        )
-
-        child_ages: list[float] = []
-        for i in range(int(num_kids)):
-            age = st.number_input(
-                f"Child {i + 1} age",
-                min_value=1.0,
-                max_value=17.0,
-                value=8.0 if i == 0 else 5.0,
-                step=0.5,
-                key=f"child_age_{i + 1}",
+        col_kids, col_scope = st.columns(2)
+        with col_kids:
+            num_kids = st.number_input(
+                "Number of kids",
+                min_value=1,
+                max_value=6,
+                value=1,
+                step=1,
             )
-            child_ages.append(float(age))
+        with col_scope:
+            kids_scope = st.selectbox(
+                "Which kids to plan for",
+                ["All kids together", "Specific child"],
+            )
 
-        kids_scope = st.selectbox(
-            "Which kids to plan for",
-            ["All kids together", "Specific child"],
-        )
+        num_kids_int = int(num_kids)
+        child_ages: list[float] = []
+        for row_start in range(0, num_kids_int, 3):
+            row_count = min(3, num_kids_int - row_start)
+            age_cols = st.columns(row_count)
+            for col_idx, col in enumerate(age_cols):
+                i = row_start + col_idx
+                with col:
+                    age = st.number_input(
+                        f"Child {i + 1} age",
+                        min_value=1.0,
+                        max_value=17.0,
+                        value=8.0 if i == 0 else 5.0,
+                        step=0.5,
+                        key=f"child_age_{i + 1}",
+                    )
+                    child_ages.append(float(age))
 
         specific_child_label: str | None = None
         if kids_scope == "Specific child":
-            child_labels = [f"Child {i + 1}" for i in range(int(num_kids))]
+            child_labels = [f"Child {i + 1}" for i in range(num_kids_int)]
             specific_child_label = st.selectbox("Select child", child_labels)
 
-        energy_level = st.selectbox(
-            "Energy level",
-            ["Low (calm day)", "Medium", "High (burn some energy)"],
-        )
-
-        location_pref = st.selectbox(
-            "Location preference",
-            ["At home", "Outdoors", "Either"],
-        )
-
-        budget = st.selectbox(
-            "Budget",
-            ["Free", "Under $20", "No limit"],
-        )
+        col_a, col_b, col_c = st.columns(3)
+        with col_a:
+            energy_level = st.selectbox(
+                "Energy level",
+                ["Low (calm day)", "Medium", "High (burn some energy)"],
+            )
+        with col_b:
+            location_pref = st.selectbox(
+                "Location preference",
+                ["At home", "Outdoors", "Either"],
+            )
+        with col_c:
+            budget = st.selectbox(
+                "Budget",
+                ["Free", "Under $20", "No limit"],
+            )
 
         screen_free = st.checkbox("Screen-free only")
 
-        submit = st.button("Plan activities", type="primary")
+    submit = st.button("Plan activities", type="primary", use_container_width=True)
 
     if submit:
         if not zip_code.strip():
@@ -229,7 +261,7 @@ def main():
         user_message = build_user_message(
             zip_code=zip_code.strip(),
             mode=mode,
-            num_kids=int(num_kids),
+            num_kids=num_kids_int,
             child_ages=child_ages,
             kids_scope=kids_scope,
             specific_child_label=specific_child_label,
