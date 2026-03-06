@@ -21,7 +21,7 @@ All four flows share a common foundation: an expert PM career coach persona with
 
 ## Why I Built This
 
-I've been coaching MBA students at UC Berkeley Haas for nearly 5 years — over 250 one-on-one sessions helping candidates break into PM roles at Google, Meta, Amazon, Anthropic, and others.
+I've been coaching MBA students at UC Berkeley Haas for nearly 5 years — over 250 one-on-one sessions helping candidates break into PM roles at Amazon, Google, Meta, Apple, OpenAI and others.
 
 In those sessions I saw the same patterns repeatedly: strong candidates struggling to structure their stories, articulate their differentiation, or close skill gaps efficiently.
 
