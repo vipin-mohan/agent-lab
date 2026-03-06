@@ -314,6 +314,7 @@ def render_interview_prep_tab():
 
 def render_gap_analysis_tab():
     st.subheader("Gap Analysis")
+    st.info("💡 Powered by insights from 250+ PM coaching sessions at UC Berkeley Haas over 5 years — not generic advice.")
     st.write(
         "Understand where you stand relative to PM hiring expectations and get a concrete plan "
         "to close the most important gaps."
@@ -393,6 +394,7 @@ def build_job_match_prompt(resume: str, job_description: str) -> tuple[str, str]
 
 def render_job_match_tab():
     st.subheader("Job Match Score")
+    st.info("💡 Powered by insights from 250+ PM coaching sessions at UC Berkeley Haas over 5 years — not generic advice.")
     st.write(
         "Paste your resume and a job description to get a structured match analysis — "
         "including a score out of 10, your strengths, gaps, and specific resume tweaks."
@@ -427,6 +429,7 @@ def render_job_match_tab():
 
 def render_career_positioning_tab():
     st.subheader("Career Positioning")
+    st.info("💡 Powered by insights from 250+ PM coaching sessions at UC Berkeley Haas over 5 years — not generic advice.")
     st.write(
         "Refine how you position yourself as a PM, from your career narrative to your resume and LinkedIn story."
     )
