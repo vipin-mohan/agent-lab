@@ -8,3 +8,8 @@ env/
 
 # Local data (optional: remove this line if you want to commit tasks.json)
 # task-api/tasks.json
+
+# PM Career Coach - sensitive files
+pm_career_coach_app/.env
+pm_career_coach_app/coaching_notes_raw.txt
+pm_career_coach_app/coaching_notes_redacted.txt
