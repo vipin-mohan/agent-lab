@@ -19,7 +19,7 @@ An app that gives structured, personalized PM interview prep, gap analysis, care
 
 **Tech:** Python · Streamlit · Claude / OpenAI / Gemini · sentence-transformers · Pinecone
 
-[Live Demo](https://agent-lab-career-coach.streamlit.app/) · [Source](./pm_career_coach_app/)
+[Live Demo](https://agent-lab-career-coach.streamlit.app/) *(may take 30–60 seconds to wake up)* · [Source](./pm_career_coach_app/)
 
 ---
 
@@ -32,7 +32,7 @@ Enter your zip code, your kids' ages, and how much time and energy you have — 
 
 **Tech:** Python · Streamlit · Claude / OpenAI / Gemini (auto-fallback)
 
-[Live Demo](https://family-activity-planner.streamlit.app/) · [Source](./family_activity_planner_app/)
+[Live Demo](https://family-activity-planner.streamlit.app/) *(may take 30–60 seconds to wake up)* · [Source](./family_activity_planner_app/)
 
 ---
 

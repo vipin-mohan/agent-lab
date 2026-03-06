@@ -2,7 +2,9 @@
 
 An AI-powered career coaching app for aspiring and current product managers — built with Python, Streamlit, and modern LLMs (Anthropic Claude, OpenAI, and Google Gemini).
 
-**[Live Demo →](https://agent-lab-career-coach.streamlit.app/)**  <!-- replace with your Streamlit Cloud URL -->
+**[Live Demo →](https://agent-lab-career-coach.streamlit.app/)**
+
+> ⏱ Hosted on Streamlit Community Cloud free tier — may take 30–60 seconds to wake up on first visit.
 
 ---
 
@@ -131,6 +133,7 @@ Then open the URL printed in the terminal (typically `http://localhost:8501`).
    ANTHROPIC_API_KEY = "your_anthropic_key_here"
    OPENAI_API_KEY    = "your_openai_key_here"
    GEMINI_API_KEY    = "your_gemini_key_here"
+   PINECONE_API_KEY  = "your_pinecone_key_here"
    ```
 
    The app will automatically pick the first available key in the priority order described above.

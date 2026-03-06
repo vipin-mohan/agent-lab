@@ -4,6 +4,8 @@ An AI-powered app that helps busy parents plan age-appropriate, location-aware f
 
 **[Live Demo →](https://family-activity-planner.streamlit.app/)**
 
+> ⏱ Hosted on Streamlit Community Cloud free tier — may take 30–60 seconds to wake up on first visit.
+
 ---
 
 ## Why I Built This
@@ -96,6 +98,6 @@ ANTHROPIC_API_KEY = "sk-ant-..."
 
 ## About the Author
 
-I'm a product leader at AWS focused on agentic AI, and a parent of two. I built this because I needed it — and because the best products come from real problems.
+I'm a product leader at AWS where I lead agentic AI products for Amazon Q, having shipped 15+ AI agent integrations using MCP and A2A protocols. I'm also a parent of two — which is exactly why I built this. The best products come from real problems.
 
 [LinkedIn](https://www.linkedin.com/in/vipinmohan) · [GitHub](https://github.com/vipin-mohan)
