@@ -8,6 +8,43 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
+@st.cache_resource
+def load_embedding_model():
+    from sentence_transformers import SentenceTransformer
+    return SentenceTransformer("all-MiniLM-L6-v2")
+
+
+@st.cache_resource
+def get_pinecone_index():
+    try:
+        from pinecone import Pinecone
+        api_key = _get_secret("PINECONE_API_KEY")
+        if not api_key:
+            return None
+        pc = Pinecone(api_key=api_key)
+        return pc.Index("coaching-notes")
+    except Exception:
+        return None
+
+
+def retrieve_relevant_coaching(query: str, n_results: int = 5) -> str:
+    index = get_pinecone_index()
+    if index is None:
+        return ""
+    try:
+        model = load_embedding_model()
+        embedding = model.encode(query).tolist()
+        results = index.query(vector=embedding, top_k=n_results, include_metadata=True)
+        chunks = [match["metadata"]["text"] for match in results["matches"] if "text" in match.get("metadata", {})]
+        if not chunks:
+            return ""
+        sections = "\n---\n".join(chunks)
+        return f"\n\n## Relevant Coaching Patterns from 250+ Sessions\n{sections}"
+    except Exception:
+        return ""
+
+
 # Upper bound on how long model responses can be.
 # Increase if you still see truncation and your model/provider supports it.
 MAX_OUTPUT_TOKENS = 4096
@@ -140,11 +177,14 @@ BASE_SYSTEM_PROMPT = dedent(
 
 
 def build_interview_prep_prompt(background: str, target_role: str, questions: str) -> tuple[str, str]:
+    coaching_context = retrieve_relevant_coaching(f"PM interview prep {target_role} {background}")
     system_prompt = BASE_SYSTEM_PROMPT + (
         "\n\nYou are currently helping the user with **PM interview preparation**. "
         "Focus on structured answers, behavioral examples, product sense, metrics, and tradeoffs. "
         "Help them turn their experience into compelling, concise interview stories."
     )
+    if coaching_context:
+        system_prompt += coaching_context
 
     user_content = dedent(
         f"""
@@ -169,11 +209,14 @@ def build_interview_prep_prompt(background: str, target_role: str, questions: st
 
 
 def build_gap_analysis_prompt(background: str, target_role: str, current_skills: str) -> tuple[str, str]:
+    coaching_context = retrieve_relevant_coaching(f"PM skill gaps {target_role} {current_skills}")
     system_prompt = BASE_SYSTEM_PROMPT + (
         "\n\nYou are currently helping the user with a **PM skill and experience gap analysis**. "
         "Be specific about where they stand versus typical expectations for their target roles. "
         "Translate gaps into a focused, time-bound development plan."
     )
+    if coaching_context:
+        system_prompt += coaching_context
 
     user_content = dedent(
         f"""
@@ -198,10 +241,13 @@ def build_gap_analysis_prompt(background: str, target_role: str, current_skills:
 
 
 def build_career_positioning_prompt(background: str, target_companies: str, narrative: str) -> tuple[str, str]:
+    coaching_context = retrieve_relevant_coaching(f"PM career narrative positioning {target_companies}")
     system_prompt = BASE_SYSTEM_PROMPT + (
         "\n\nYou are currently helping the user with **PM career positioning and narrative**. "
         "Help them craft a compelling positioning statement and narrative tailored to their target companies."
     )
+    if coaching_context:
+        system_prompt += coaching_context
 
     user_content = dedent(
         f"""
@@ -227,6 +273,7 @@ def build_career_positioning_prompt(background: str, target_companies: str, narr
 
 def render_interview_prep_tab():
     st.subheader("Interview Prep")
+    st.info("💡 Powered by insights from 250+ PM coaching sessions at UC Berkeley Haas over 5 years — not generic advice.")
     st.write(
         "Get structured coaching on how to tell your story, answer PM interview questions, "
         "and showcase product sense for your target roles."
@@ -311,6 +358,10 @@ JOB_MATCH_SYSTEM_PROMPT = (
 
 
 def build_job_match_prompt(resume: str, job_description: str) -> tuple[str, str]:
+    coaching_context = retrieve_relevant_coaching(f"PM job match resume scoring {job_description}")
+    system_prompt = JOB_MATCH_SYSTEM_PROMPT
+    if coaching_context:
+        system_prompt += coaching_context
     user_content = dedent(
         f"""
         Here is my resume:
@@ -337,7 +388,7 @@ def build_job_match_prompt(resume: str, job_description: str) -> tuple[str, str]
         """
     ).strip()
 
-    return JOB_MATCH_SYSTEM_PROMPT, user_content
+    return system_prompt, user_content
 
 
 def render_job_match_tab():
@@ -436,6 +487,12 @@ def main():
     _inject_responsive_css()
     st.title("PM Career Coach")
     st.caption("AI-powered career coaching for aspiring and current product managers.")
+
+    with st.sidebar:
+        if get_pinecone_index() is not None:
+            st.success("✅ Coaching knowledge base active")
+        else:
+            st.warning("⚠️ Coaching knowledge base unavailable")
 
     tab_interview, tab_gap, tab_positioning, tab_job_match = st.tabs(
         ["Interview Prep", "Gap Analysis", "Career Positioning", "Job Match Score"]

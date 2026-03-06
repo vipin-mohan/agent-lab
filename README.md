@@ -11,15 +11,13 @@ I lead agentic AI product development at Amazon Web Services. This repo is where
 ## Projects
 
 ### 🤖 PM Career Coach
-> AI-powered career coaching for aspiring product managers
+> AI-powered career coaching grounded in real coaching data
 
-An app that gives structured, personalized PM interview prep, gap analysis, career positioning, and job-to-resume match scoring — built from patterns I've observed coaching 250+ MBA students at UC Berkeley Haas over 5+ years.
+An app that gives structured, personalized PM interview prep, gap analysis, career positioning, and job match scoring — built from 250+ real coaching sessions at UC Berkeley Haas over 5 years.
 
-**Why it's different:** The system prompts aren't generic. They encode real coaching patterns from hundreds of actual sessions — what separates strong PM candidates, common storytelling mistakes, and what top tech companies actually look for.
+**What makes it different:** Responses are grounded in a RAG pipeline built from my actual coaching notes. The app embeds your query, retrieves the most semantically relevant coaching patterns from a Pinecone vector database, and injects them into the prompt — so advice is specific and pattern-based, not generic.
 
-Four tabs: **Interview Prep** · **Gap Analysis** · **Career Positioning** · **Job Match Score**
-
-**Tech:** Python · Streamlit · Claude / OpenAI / Gemini (auto-fallback)
+**Tech:** Python · Streamlit · Claude / OpenAI / Gemini · sentence-transformers · Pinecone
 
 [Live Demo](https://agent-lab-career-coach.streamlit.app/) · [Source](./pm_career_coach_app/)
 

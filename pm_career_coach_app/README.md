@@ -21,23 +21,30 @@ All four flows share a common foundation: an expert PM career coach persona with
 
 ## Why I Built This
 
-I've been coaching MBA students at UC Berkeley Haas for nearly 5 years, with over 250 one-on-one sessions helping candidates break into PM roles at companies like Google, Meta, Amazon, and Anthropic. In those sessions, I saw the same patterns repeatedly — candidates with strong backgrounds struggling to structure their stories, articulate their differentiation, or close skill gaps efficiently.
+I've been coaching MBA students at UC Berkeley Haas for nearly 5 years — over 250 one-on-one sessions helping candidates break into PM roles at Google, Meta, Amazon, Anthropic, and others.
 
-This app encodes those coaching patterns into an AI assistant that gives anyone access to structured, specific PM career guidance — not generic advice.
+In those sessions I saw the same patterns repeatedly: strong candidates struggling to structure their stories, articulate their differentiation, or close skill gaps efficiently.
+
+This app is different from generic PM coaching tools. The AI responses are grounded in a knowledge base built from my actual coaching notes — real patterns, real mistakes, real advice that worked. When you ask for a gap analysis or interview prep, the app retrieves the most relevant coaching insights from those 250+ sessions and uses them to inform the response.
+
+## How It Works
+
+1. You enter your background, target role, and questions
+2. The app searches a vector database of 250+ real coaching sessions for the most relevant patterns
+3. Those patterns are injected into the AI prompt alongside your inputs
+4. Claude synthesizes the coaching wisdom with your specific situation to generate a personalized response
+
+This means responses are grounded in real PM hiring patterns — not just what a general-purpose AI knows about product management.
 
 ---
 
 ## Tech Stack
 
-- **Frontend**: Streamlit
-- **AI Providers**:
-  - Anthropic Claude (`claude-sonnet-4-6`)
-  - OpenAI (`gpt-4.1-mini`)
-  - Google Gemini (`gemini-2.0-flash`)
-- **Language**: Python 3.11+
-- **Hosting**: Streamlit Community Cloud
-
-The app automatically picks the first available provider in this order: Anthropic → OpenAI → Gemini.
+- **Frontend:** Streamlit
+- **AI:** Anthropic Claude (claude-sonnet-4-6), with automatic fallback to OpenAI (gpt-4.1-mini) and Google Gemini (gemini-2.0-flash)
+- **RAG Pipeline:** sentence-transformers (all-MiniLM-L6-v2) for embeddings, Pinecone for cloud vector storage
+- **Language:** Python 3.11+
+- **Hosting:** Streamlit Community Cloud
 
 ---
 

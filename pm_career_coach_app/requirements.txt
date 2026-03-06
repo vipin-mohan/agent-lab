@@ -4,3 +4,5 @@ anthropic
 python-dotenv
 openai
 google-genai
+pinecone
+sentence-transformers
