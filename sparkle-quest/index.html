@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<!--
+  =====================================================================
+  SPARKLE QUEST — A Magical Unicorn Adventure Game
+  =====================================================================
+
+  HOW TO HOST ON GITHUB PAGES:
+  1. Create a new GitHub repository (e.g. "sparkle-quest")
+  2. Upload this index.html file to the root of the repository
+  3. Go to Settings → Pages → Source → Deploy from branch → main / root
+  4. After ~60 seconds your game will be live at:
+     https://<your-username>.github.io/sparkle-quest/
+
+  =====================================================================
+  TESTING CHECKLIST:
+  - Desktop Chrome/Safari : keyboard arrows/WASD, full canvas visible,
+                            D-pad NOT shown (pointer:fine media query)
+  - iPhone Safari portrait : canvas fills width, D-pad visible at bottom,
+                             iOS safe-area-inset-bottom respected
+  - iPad landscape         : canvas letterboxed/centered, D-pad visible,
+                             HUD text does not overflow
+  - Android Chrome         : touch D-pad moves unicorn, multi-touch held
+                             direction registers continuously, no overflow
+  =====================================================================
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- viewport-fit=cover for iOS notch/home-bar safe areas -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Sparkle Quest ✨</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Bubblegum+Sans&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* Prevent scroll/bounce on all devices */
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    body {
+      background: #1a0533;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Fredoka One', 'Bubblegum Sans', cursive;
+    }
+
+    /* ── Game wrapper ─────────────────────────────────── */
+    #gameWrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      width: 100%;
+      height: 100%;
+      max-width: 100vw;
+      max-height: 100dvh;
+    }
+
+    /* ── HUD ─────────────────────────────────────────── */
+    #hud {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: clamp(4px,1.2vw,10px) clamp(8px,2vw,18px);
+      background: linear-gradient(90deg, #ff9de2cc, #c9b8ffcc, #9bf0e8cc);
+      font-size: clamp(13px, 3.2vw, 22px);
+      color: #4a006e;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    #hud span { flex-shrink: 0; }
+
+    /* ── Canvas container ────────────────────────────── */
+    #canvasWrap {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Canvas has fixed logical resolution 800×600.
+       CSS scales it to fit while preserving aspect ratio.
+       object-fit:contain works on canvas (replaced element). */
+    #gameCanvas {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      box-shadow: 0 0 40px #c084fc66, 0 0 80px #f0abfc33;
+    }
+
+    /* ── Overlay Screens ────────────────────────────── */
+    #overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(20,0,50,0.82);
+      color: white;
+      text-align: center;
+      padding: clamp(12px,4vw,32px);
+      gap: clamp(8px,2vh,16px);
+      backdrop-filter: blur(6px);
+    }
+    #overlay.hidden { display: none; }
+
+    .overlay-title {
+      font-size: clamp(24px, 7vw, 54px);
+      background: linear-gradient(135deg, #ffd700, #ff69b4, #c084fc, #67e8f9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.1;
+      filter: drop-shadow(0 2px 8px #c084fc88);
+      animation: titlePulse 2s ease-in-out infinite;
+    }
+    @keyframes titlePulse {
+      0%,100% { filter: drop-shadow(0 2px 8px #c084fc88); }
+      50%      { filter: drop-shadow(0 4px 20px #ffd70088); }
+    }
+    .overlay-sub {
+      font-size: clamp(12px, 3vw, 20px);
+      color: #f0c8ff;
+      font-family: 'Bubblegum Sans', cursive;
+      line-height: 1.4;
+    }
+    .overlay-hint {
+      font-size: clamp(11px, 2.2vw, 15px);
+      color: #c084fc;
+      animation: blink 1.5s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .level-name {
+      font-size: clamp(16px, 4.5vw, 32px);
+      color: #ffd700;
+      text-shadow: 0 0 12px #ffd70066;
+    }
+    .big-btn {
+      padding: clamp(10px,2.5vh,16px) clamp(24px,6vw,44px);
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(15px, 3.5vw, 24px);
+      border: none;
+      border-radius: 50px;
+      background: linear-gradient(135deg, #ff69b4, #c084fc, #67e8f9);
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 20px #c084fc88;
+      transition: transform 0.15s, box-shadow 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .big-btn:hover  { transform: scale(1.06); box-shadow: 0 6px 30px #c084fcaa; }
+    .big-btn:active { transform: scale(0.96); }
+
+    /* ── D-Pad — fixed overlay, touch devices only ───── */
+    #dpad {
+      display: none; /* JS enables for touch devices */
+      position: fixed;
+      bottom: calc(20px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      width: 210px;
+      height: 210px;
+      z-index: 200;
+      /* 3×3 grid layout */
+      display: none;
+      grid-template-columns: repeat(3, 70px);
+      grid-template-rows: repeat(3, 70px);
+    }
+    #dpad.touch-visible { display: grid; }
+
+    /* Hide D-pad on devices with a fine pointer (mouse) */
+    @media (pointer: fine) {
+      #dpad { display: none !important; }
+    }
+
+    #dpad button {
+      width: 64px;
+      height: 64px;
+      margin: 3px;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.22);
+      backdrop-filter: blur(4px);
+      font-size: 22px;
+      color: rgba(255,255,255,0.9);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      touch-action: none;
+      /* min tap target 64px already set above */
+    }
+    #dpad button:active { background: rgba(255,255,255,0.45); }
+
+    /* Grid positions for cardinal directions */
+    #btn-up    { grid-column: 2; grid-row: 1; }
+    #btn-left  { grid-column: 1; grid-row: 2; }
+    #btn-right { grid-column: 3; grid-row: 2; }
+    #btn-down  { grid-column: 2; grid-row: 3; }
+    /* Center cell (empty) */
+    #dpad-center { grid-column: 2; grid-row: 2; }
+  </style>
+</head>
+<body>
+
+<div id="gameWrapper">
+  <div id="hud">
+    <span id="hudLevel">Level 1</span>
+    <span id="hudLives">🦄🦄🦄</span>
+    <span id="hudScore">⭐ 0</span>
+  </div>
+  <div id="canvasWrap">
+    <!-- Logical resolution fixed at 800×600 — CSS handles display scaling -->
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="overlay">
+      <div class="overlay-title" id="overlayTitle">✨ Sparkle Quest ✨</div>
+      <div class="overlay-sub"  id="overlaySub">Help the unicorn collect stars &amp; gems,<br>avoid storm clouds, and find the Golden Horn!</div>
+      <div class="level-name"   id="overlayLevel"></div>
+      <div                      id="overlayLives"></div>
+      <button class="big-btn"   id="overlayBtn" onclick="handleOverlayBtn()">▶ Start Adventure</button>
+      <div class="overlay-hint" id="overlayHint">Arrow keys / WASD to move &nbsp;|&nbsp; Touch D-pad on mobile</div>
+    </div>
+  </div>
+</div>
+
+<!-- D-Pad: fixed overlay, independent of canvas CSS scaling -->
+<div id="dpad">
+  <button id="btn-up">▲</button>
+  <button id="btn-left">◀</button>
+  <div id="dpad-center"></div>
+  <button id="btn-right">▶</button>
+  <button id="btn-down">▼</button>
+</div>
+
+<script>
+'use strict';
+// ═══════════════════════════════════════════════════════════════
+//  SPARKLE QUEST — Game Engine
+//  Logical resolution: 800 × 600 (canvas.width / canvas.height)
+//  All game coords are in logical pixels. CSS scales the display.
+// ═══════════════════════════════════════════════════════════════
+
+const canvas  = document.getElementById('gameCanvas');
+const ctx     = canvas.getContext('2d');
+const overlay = document.getElementById('overlay');
+
+// Canvas is always 800×600 logical pixels — no scale variable needed.
+const BASE_W = 800, BASE_H = 600;
+// (canvas.width and canvas.height are set to 800/600 in HTML)
+
+// ── Show D-Pad only on touch devices ─────────────────────────
+if ('ontouchstart' in window) {
+  document.getElementById('dpad').classList.add('touch-visible');
+}
+
+// ── Audio Context ────────────────────────────────────────────
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function playTone(freq, type, dur, vol=0.3, delay=0) {
+  try {
+    const ac = getAudio();
+    const osc = ac.createOscillator(), gain = ac.createGain();
+    osc.connect(gain); gain.connect(ac.destination);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ac.currentTime + delay);
+    gain.gain.setValueAtTime(0, ac.currentTime + delay);
+    gain.gain.linearRampToValueAtTime(vol, ac.currentTime + delay + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + delay + dur);
+    osc.start(ac.currentTime + delay);
+    osc.stop(ac.currentTime + delay + dur + 0.05);
+  } catch(e) {}
+}
+function sfxStar()  { playTone(660,'sine',.12,.25); playTone(880,'sine',.12,.2,.1); playTone(1100,'sine',.15,.18,.2); }
+function sfxGem()   { playTone(880,'sine',.1,.25); playTone(1320,'sine',.1,.2,.08); playTone(1760,'sine',.15,.18,.16); playTone(2200,'triangle',.2,.15,.24); }
+function sfxCloud() {
+  try {
+    const ac=getAudio(), buf=ac.createBuffer(1,ac.sampleRate*.2,ac.sampleRate);
+    const d=buf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*.5;
+    const src=ac.createBufferSource(), g=ac.createGain(), f=ac.createBiquadFilter();
+    src.buffer=buf; f.type='lowpass'; f.frequency.value=200;
+    src.connect(f); f.connect(g); g.connect(ac.destination);
+    g.gain.setValueAtTime(.4,ac.currentTime); g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.25);
+    src.start(); src.stop(ac.currentTime+.25);
+  } catch(e) {}
+}
+function sfxLevelComplete() {
+  [[523,.15],[659,.15],[784,.15],[1047,.3],[1319,.15],[1568,.4]].forEach(([f,d],i)=>playTone(f,'sine',d,.25,i*.12));
+}
+function sfxGameOver() {
+  [[440,.2],[370,.2],[311,.2],[261,.4]].forEach(([f,d],i)=>playTone(f,'sawtooth',d,.2,i*.22));
+}
+function sfxWin() {
+  [523,659,784,1047,784,1047,1319,1047,1319,1568].forEach((f,i)=>playTone(f,'sine',.15,.28,i*.1));
+  setTimeout(()=>[784,1047,1319,1568,2093].forEach((f,i)=>playTone(f,'sine',.2,.3,i*.08)),1200);
+}
+
+// ── Game State ───────────────────────────────────────────────
+const STATES = { TITLE:0, LEVEL_INTRO:1, PLAYING:2, LEVEL_COMPLETE:4, WIN:5, GAME_OVER:6 };
+let state = STATES.TITLE;
+let level = 1, score = 0, lives = 3;
+let frameCount = 0;
+
+// ── Input ────────────────────────────────────────────────────
+const keys = {};
+window.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  if ([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
+  if (e.key === ' ' || e.key === 'Enter') handleOverlayBtn();
+});
+window.addEventListener('keyup', e => { keys[e.key] = false; });
+
+// D-Pad — multi-touch: each button independently tracks its touches
+function bindDpadButton(dir) {
+  const btn = document.getElementById('btn-' + dir);
+  if (!btn) return;
+  const down = e => { e.preventDefault(); keys['_d_'+dir] = true; };
+  const up   = e => { e.preventDefault(); keys['_d_'+dir] = false; };
+  btn.addEventListener('touchstart',  down, {passive:false});
+  btn.addEventListener('touchend',    up,   {passive:false});
+  btn.addEventListener('touchcancel', up,   {passive:false});
+  btn.addEventListener('mousedown', down);
+  btn.addEventListener('mouseup',   up);
+  btn.addEventListener('mouseleave',up);
+}
+['up','down','left','right'].forEach(bindDpadButton);
+
+function isUp()    { return keys['ArrowUp']   ||keys['w']||keys['W']||keys['_d_up']; }
+function isDown()  { return keys['ArrowDown'] ||keys['s']||keys['S']||keys['_d_down']; }
+function isLeft()  { return keys['ArrowLeft'] ||keys['a']||keys['A']||keys['_d_left']; }
+function isRight() { return keys['ArrowRight']||keys['d']||keys['D']||keys['_d_right']; }
+
+// ── Level Definitions ────────────────────────────────────────
+const LEVEL_DATA = [
+  { name:'Level 1: The Rainbow Meadow', bg:['#ffe4f0','#ffd6f0','#e8c8ff','#d4f0e8'], cloudCount:3, cloudSpeed:0.9,  stars:8,  gems:3 },
+  { name:'Level 2: Crystal Caves',      bg:['#c8d4ff','#b8c8f8','#d8b8f8','#b8e8f8'], cloudCount:5, cloudSpeed:1.3,  stars:10, gems:5 },
+  { name:'Level 3: Sky Kingdom',        bg:['#fff0c8','#ffe8b8','#ffd8c8','#ffc8d8'], cloudCount:7, cloudSpeed:1.85, stars:12, gems:7 },
+];
+
+// ── Player ───────────────────────────────────────────────────
+const PLAYER_SIZE  = 44;  // collision radius = 22
+const PLAYER_SPEED = 3.5;
+let player = { x:70, y:BASE_H/2, vx:0, vy:0, trail:[], invincible:0, dir:1, isMoving:false };
+
+// ── Entities ─────────────────────────────────────────────────
+let stars=[], gems=[], clouds=[], horn=null;
+let particles=[], confetti=[];
+
+// ── Particle Spawner ─────────────────────────────────────────
+function spawnParticles(x, y, colors, count=10, speed=2.5, life=40) {
+  for (let i=0; i<count; i++) {
+    const angle = Math.random()*Math.PI*2;
+    const spd   = (.4+Math.random()*.6)*speed;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle)*spd, vy: Math.sin(angle)*spd,
+      life, maxLife: life,
+      color: colors[Math.floor(Math.random()*colors.length)],
+      size: 3+Math.random()*5,
+      shape: Math.random()<.5 ? 'circle' : 'star'
+    });
+  }
+}
+
+// ── Build Level ──────────────────────────────────────────────
+function buildLevel(lvl) {
+  const d = LEVEL_DATA[lvl-1];
+  player = { x:70, y:BASE_H/2, vx:0, vy:0, trail:[], invincible:0, dir:1, isMoving:false };
+  stars=[]; gems=[]; clouds=[]; particles=[];
+
+  for (let i=0; i<d.stars; i++)
+    stars.push({ x:130+Math.random()*(BASE_W-240), y:55+Math.random()*(BASE_H-130), pulse:Math.random()*Math.PI*2 });
+  for (let i=0; i<d.gems; i++)
+    gems.push({  x:130+Math.random()*(BASE_W-240), y:55+Math.random()*(BASE_H-130), pulse:Math.random()*Math.PI*2 });
+  for (let i=0; i<d.cloudCount; i++)
+    clouds.push({
+      x:220+Math.random()*(BASE_W-320), y:55+Math.random()*(BASE_H-110),
+      vx:(Math.random()<.5?1:-1)*(.4+Math.random()*.6)*d.cloudSpeed,
+      vy:(Math.random()<.5?1:-1)*(.2+Math.random()*.3)*d.cloudSpeed,
+      w:70+Math.random()*35, h:42+Math.random()*18
+    });
+  horn = { x:BASE_W-70, y:BASE_H/2+(Math.random()-.5)*120, pulse:0 };
+}
+
+// ── Collision ────────────────────────────────────────────────
+function circleRect(cx,cy,cr,rx,ry,rw,rh) {
+  const nx=Math.max(rx,Math.min(cx,rx+rw)), ny=Math.max(ry,Math.min(cy,ry+rh));
+  return (cx-nx)**2+(cy-ny)**2 < cr*cr;
+}
+function dist(a,b) { return Math.hypot(a.x-b.x, a.y-b.y); }
+
+// ── Draw Utilities ───────────────────────────────────────────
+function drawStarShape(cx, cy, r, spikes=5, color='#FFD700') {
+  ctx.beginPath();
+  for (let i=0; i<spikes*2; i++) {
+    const angle = (i*Math.PI/spikes) - Math.PI/2;
+    const rad   = i%2===0 ? r : r*.4;
+    i===0 ? ctx.moveTo(cx+Math.cos(angle)*rad, cy+Math.sin(angle)*rad)
+           : ctx.lineTo(cx+Math.cos(angle)*rad, cy+Math.sin(angle)*rad);
+  }
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+function drawGemShape(cx, cy, r) {
+  ctx.beginPath();
+  ctx.moveTo(cx, cy-r);
+  ctx.lineTo(cx+r*.7, cy-r*.2); ctx.lineTo(cx+r*.7, cy+r*.4);
+  ctx.lineTo(cx, cy+r);
+  ctx.lineTo(cx-r*.7, cy+r*.4); ctx.lineTo(cx-r*.7, cy-r*.2);
+  ctx.closePath();
+}
+function drawCloudShape(cx, cy, w, h) {
+  ctx.beginPath();
+  ctx.ellipse(cx,       cy,        w/2,    h/2,    0, 0, Math.PI*2);
+  ctx.ellipse(cx-w*.22, cy+h*.1,   w*.32,  h*.42,  0, 0, Math.PI*2);
+  ctx.ellipse(cx+w*.22, cy+h*.1,   w*.32,  h*.42,  0, 0, Math.PI*2);
+  ctx.ellipse(cx-w*.12, cy-h*.18,  w*.28,  h*.36,  0, 0, Math.PI*2);
+  ctx.ellipse(cx+w*.15, cy-h*.14,  w*.26,  h*.32,  0, 0, Math.PI*2);
+}
+function lerpColor(a, b, t) {
+  const p=s=>parseInt(s,16);
+  const ah=a.slice(1), bh=b.slice(1);
+  const r=Math.round(p(ah.slice(0,2))+(p(bh.slice(0,2))-p(ah.slice(0,2)))*t);
+  const g=Math.round(p(ah.slice(2,4))+(p(bh.slice(2,4))-p(ah.slice(2,4)))*t);
+  const bl=Math.round(p(ah.slice(4,6))+(p(bh.slice(4,6))-p(ah.slice(4,6)))*t);
+  return `rgb(${r},${g},${bl})`;
+}
+
+// ── Draw Unicorn Leg (helper) ─────────────────────────────────
+function drawUniLeg(x, topY, swing, color) {
+  const legLen = 16;
+  const ex = x + swing * 0.65, ey = topY + legLen;
+  ctx.beginPath();
+  ctx.moveTo(x, topY);
+  ctx.quadraticCurveTo(x + swing*0.3, topY + legLen*0.5, ex, ey);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 8;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+  // Rounded hoof
+  ctx.beginPath();
+  ctx.ellipse(ex, ey+3, 5, 3.5, 0, 0, Math.PI*2);
+  ctx.fillStyle = '#c8a0d0';
+  ctx.fill();
+}
+
+// ── Draw Chibi Unicorn ────────────────────────────────────────
+// Drawn relative to (0,0); call ctx.translate(x,y) before this.
+// Approx bounding box: ±50 x, -65 to +38 y (visual, not collision).
+function drawUnicorn(x, y, dir, invincible, isMoving) {
+  ctx.save();
+  ctx.translate(x, y);
+  if (dir < 0) ctx.scale(-1, 1);
+
+  // Invincibility flash
+  if (invincible > 0 && Math.floor(invincible/4)%2===0) ctx.globalAlpha = 0.35;
+
+  // ── Drop shadow (not affected by breathe scale) ──
+  ctx.save();
+  ctx.globalAlpha *= 0.22;
+  ctx.fillStyle = '#5500aa';
+  ctx.beginPath();
+  ctx.ellipse(3, 30, 24, 7, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  // ── Idle breathing scale ──
+  const breathe = isMoving ? 1.0 : (1 + Math.sin(frameCount*0.05)*0.022);
+  ctx.scale(breathe, breathe);
+
+  // ── Tail (behind body) ──
+  const tw = Math.sin(frameCount*0.09);
+  const tailPalette = ['#ff69b4','#c084fc','#67e8f9','#fbbf24'];
+  tailPalette.forEach((col, i) => {
+    ctx.beginPath();
+    ctx.moveTo(-22, 0 + i*2.5);
+    ctx.bezierCurveTo(
+      -38, -6  + i*4 + tw*5,
+      -48,  8  + i*5 + tw*9,
+      -38,  24 + i*6 + tw*7
+    );
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 7 - i*1.3;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  });
+
+  // ── Back legs (behind body) ──
+  const legSwing = isMoving ? Math.sin(frameCount*0.22)*12 : 0;
+  drawUniLeg(-12, 16, legSwing,  '#ecc8ee');
+  drawUniLeg(  2, 16, -legSwing, '#ecc8ee');
+
+  // ── Body ──
+  ctx.beginPath();
+  ctx.ellipse(0, 7, 26, 19, 0, 0, Math.PI*2);
+  const bodyG = ctx.createLinearGradient(0,-12,0,26);
+  bodyG.addColorStop(0,'#eedcff');
+  bodyG.addColorStop(1,'#ffd0ef');
+  ctx.fillStyle = bodyG;
+  ctx.fill();
+  ctx.strokeStyle = '#d8b0ec';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // ── Front legs (in front of body) ──
+  drawUniLeg( 10, 16, -legSwing, '#ecc8ee');
+  drawUniLeg( 20, 16,  legSwing, '#ecc8ee');
+
+  // ── Neck ──
+  ctx.beginPath();
+  ctx.ellipse(17, -4, 10, 15, 0.22, 0, Math.PI*2);
+  ctx.fillStyle = '#fff0fb';
+  ctx.fill();
+  ctx.strokeStyle = '#e0c0e8';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // ── Mane (flowing back from head, 4 bezier strands) ──
+  const mw = Math.sin(frameCount*0.07);
+  const manePalette = ['#ff69b4','#c084fc','#67e8f9','#86efac'];
+  manePalette.forEach((col, i) => {
+    ctx.beginPath();
+    ctx.moveTo(10 - i*3,  -28 + i*2);
+    ctx.bezierCurveTo(
+      -4  - i*3, -18 + i*3 + mw*2,
+      -12 - i*4,  -4 + i*4 + mw*3,
+      -8  - i*3,  14 + i*3 + mw*2
+    );
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 5.5 - i;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+  });
+
+  // ── Head (big round, kawaii proportions) ──
+  ctx.beginPath();
+  ctx.arc(22, -19, 21, 0, Math.PI*2);
+  const headG = ctx.createRadialGradient(19,-22,2, 22,-19,21);
+  headG.addColorStop(0,'#fff8ff');
+  headG.addColorStop(1,'#ffe8f8');
+  ctx.fillStyle = headG;
+  ctx.fill();
+  ctx.strokeStyle = '#e0c0e8';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // ── Rainbow Horn (tapered, banded) ──
+  const hornColors = ['#ff4466','#ff8800','#ffdd00','#44cc44','#3388ff','#aa44ff'];
+  const hbx=31, hby=-37, htx=37, hty=-63;
+  hornColors.forEach((col, i) => {
+    const t0=i/hornColors.length, t1=(i+1)/hornColors.length;
+    const x0=hbx+(htx-hbx)*t0, y0=hby+(hty-hby)*t0;
+    const x1=hbx+(htx-hbx)*t1, y1=hby+(hty-hby)*t1;
+    const w0=6*(1-t0), w1=6*(1-t1);
+    ctx.beginPath();
+    ctx.moveTo(x0-w0, y0); ctx.lineTo(x0+w0, y0);
+    ctx.lineTo(x1+w1, y1); ctx.lineTo(x1-w1, y1);
+    ctx.closePath();
+    ctx.fillStyle = col;
+    ctx.fill();
+  });
+  // Horn shine line
+  ctx.beginPath();
+  ctx.moveTo(hbx, hby-1);
+  ctx.lineTo(htx-2, hty+3);
+  ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+  ctx.lineWidth = 1.8;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // ── Eye — large sparkly kawaii ──
+  // White sclera
+  ctx.beginPath();
+  ctx.ellipse(31, -22, 7.5, 9, -0.08, 0, Math.PI*2);
+  ctx.fillStyle = 'white';
+  ctx.fill();
+  ctx.strokeStyle = '#c0a0c8';
+  ctx.lineWidth = 0.8;
+  ctx.stroke();
+  // Iris (purple)
+  ctx.beginPath();
+  ctx.ellipse(31, -21, 5.5, 6.5, 0, 0, Math.PI*2);
+  ctx.fillStyle = '#6d28d9';
+  ctx.fill();
+  // Pupil
+  ctx.beginPath();
+  ctx.ellipse(31.5,-20.5, 3.2, 4, 0, 0, Math.PI*2);
+  ctx.fillStyle = '#1a0030';
+  ctx.fill();
+  // Main highlight dot
+  ctx.beginPath();
+  ctx.arc(33.5, -23, 2.2, 0, Math.PI*2);
+  ctx.fillStyle = 'white';
+  ctx.fill();
+  // Small secondary highlight
+  ctx.beginPath();
+  ctx.arc(29.5, -25.5, 1.1, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(255,255,255,0.75)';
+  ctx.fill();
+  // Eyelashes (4 strokes above eye)
+  ctx.strokeStyle = '#2d0050';
+  ctx.lineWidth = 1.4;
+  ctx.lineCap = 'round';
+  for (let i=0; i<4; i++) {
+    const ex = 24.5 + i*3;
+    ctx.beginPath();
+    ctx.moveTo(ex, -30);
+    ctx.lineTo(ex - 1.2 + i*0.5, -35 - i*0.8);
+    ctx.stroke();
+  }
+
+  // ── Rosy blush circles ──
+  ctx.beginPath();
+  ctx.arc(16, -13, 7, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(255,140,175,0.38)';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(28, -13, 5, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(255,140,175,0.25)';
+  ctx.fill();
+
+  // ── Tiny cute smile ──
+  ctx.beginPath();
+  ctx.arc(24, -14, 5, 0.25, Math.PI-0.25);
+  ctx.strokeStyle = '#cc88b8';
+  ctx.lineWidth = 1.6;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+// ── Draw Trail ───────────────────────────────────────────────
+// Particles emit from the tail position (left side of unicorn, dir-adjusted)
+function drawTrail(trail) {
+  const colors = ['#ff69b4','#c084fc','#67e8f9','#fbbf24','#86efac'];
+  trail.forEach((pt, i) => {
+    const alpha = (i/trail.length)*0.65;
+    const r     = (PLAYER_SIZE/2)*(i/trail.length)*0.52;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = colors[i%colors.length];
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, r, 0, Math.PI*2);
+    ctx.fill();
+    if (i%4===0 && r>2) {
+      drawStarShape(pt.x, pt.y, r*.85, 4, colors[(i+2)%colors.length]);
+    }
+  });
+  ctx.globalAlpha = 1;
+}
+
+// ── Draw Particles ───────────────────────────────────────────
+function drawParticle(p) {
+  const alpha = p.life / p.maxLife;
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = p.color;
+  if (p.shape === 'star') {
+    drawStarShape(p.x, p.y, p.size*alpha, 4, p.color);
+  } else {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size*alpha, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ── Background ───────────────────────────────────────────────
+let bgAngle = 0;
+function drawBackground(lvl) {
+  bgAngle += 0.002;
+  const colors = LEVEL_DATA[lvl-1].bg;
+  const t  = Math.sin(bgAngle)*0.5+0.5;
+  const t2 = Math.cos(bgAngle*.7)*0.5+0.5;
+  const grd = ctx.createLinearGradient(0,0,BASE_W,BASE_H);
+  grd.addColorStop(0,   lerpColor(colors[0], colors[1], t));
+  grd.addColorStop(0.4, lerpColor(colors[1], colors[2], t2));
+  grd.addColorStop(0.7, lerpColor(colors[2], colors[3], t));
+  grd.addColorStop(1,   lerpColor(colors[3], colors[0], t2));
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, BASE_W, BASE_H);
+
+  // Soft tile grid
+  ctx.globalAlpha = 0.055;
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 0.5;
+  for (let x=0; x<BASE_W; x+=44) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,BASE_H); ctx.stroke(); }
+  for (let y=0; y<BASE_H; y+=44) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(BASE_W,y); ctx.stroke(); }
+  ctx.globalAlpha = 1;
+
+  // Ambient sparkle dots
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  for (let i=0; i<20; i++) {
+    const bx = ((i*137.5 + frameCount*.13*(i%3===0?1:-1)) % BASE_W + BASE_W) % BASE_W;
+    const by = ((i*73.1  + frameCount*.08*(i%2===0?1:-1)) % BASE_H + BASE_H) % BASE_H;
+    const br = .8+Math.sin(frameCount*.05+i)*.5;
+    ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI*2); ctx.fill();
+  }
+}
+
+// ── Draw Stars ───────────────────────────────────────────────
+function drawStars(arr) {
+  arr.forEach(s => {
+    const pulse = Math.sin(s.pulse + frameCount*.07)*.18+1;
+    const r = 12*pulse;
+    const g = ctx.createRadialGradient(s.x,s.y,0, s.x,s.y,r*2.2);
+    g.addColorStop(0,'rgba(255,220,50,0.55)'); g.addColorStop(1,'rgba(255,220,50,0)');
+    ctx.beginPath(); ctx.arc(s.x,s.y,r*2.2,0,Math.PI*2);
+    ctx.fillStyle=g; ctx.fill();
+    drawStarShape(s.x, s.y, r, 5, '#FFD700');
+    ctx.fillStyle='rgba(255,255,255,0.65)';
+    ctx.beginPath(); ctx.arc(s.x-r*.25, s.y-r*.3, r*.2, 0, Math.PI*2); ctx.fill();
+  });
+}
+
+// ── Draw Gems ────────────────────────────────────────────────
+function drawGems(arr) {
+  const gemCols = ['#a78bfa','#818cf8','#38bdf8','#34d399'];
+  arr.forEach(g => {
+    const pulse = Math.sin(g.pulse + frameCount*.09)*.2+1;
+    const r = 12*pulse;
+    const col = gemCols[Math.floor(g.pulse*2)%gemCols.length];
+    const grd = ctx.createRadialGradient(g.x,g.y,0, g.x,g.y,r*2);
+    grd.addColorStop(0, col+'88'); grd.addColorStop(1, col+'00');
+    ctx.beginPath(); ctx.arc(g.x,g.y,r*2,0,Math.PI*2);
+    ctx.fillStyle=grd; ctx.fill();
+    drawGemShape(g.x, g.y, r);
+    const lg = ctx.createLinearGradient(g.x,g.y-r, g.x,g.y+r);
+    lg.addColorStop(0,'#e0c8ff'); lg.addColorStop(.4,col); lg.addColorStop(1,'#5050bb');
+    ctx.fillStyle=lg; ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.65)'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,0.55)';
+    ctx.beginPath(); ctx.arc(g.x-r*.25, g.y-r*.35, r*.22, 0, Math.PI*2); ctx.fill();
+  });
+}
+
+// ── Draw Clouds ──────────────────────────────────────────────
+function drawClouds(arr) {
+  arr.forEach(c => {
+    ctx.save();
+    ctx.shadowColor='#223'; ctx.shadowBlur=14;
+    drawCloudShape(c.x, c.y, c.w, c.h);
+    const cg = ctx.createLinearGradient(c.x,c.y-c.h/2, c.x,c.y+c.h/2);
+    cg.addColorStop(0,'#6b7280'); cg.addColorStop(.5,'#4b5563'); cg.addColorStop(1,'#374151');
+    ctx.fillStyle=cg; ctx.fill();
+    ctx.strokeStyle='#1f2937'; ctx.lineWidth=2; ctx.stroke();
+    // Rain
+    for (let i=0; i<4; i++) {
+      const rx=c.x+(i-1.5)*c.w*.18;
+      const ry=c.y+c.h*.55+(frameCount*.045+i*.45)%(c.h*.6);
+      ctx.beginPath(); ctx.moveTo(rx,ry); ctx.lineTo(rx-1.5,ry+7);
+      ctx.strokeStyle='rgba(160,200,255,0.8)'; ctx.lineWidth=2; ctx.stroke();
+    }
+    ctx.restore();
+    ctx.shadowColor='transparent'; ctx.shadowBlur=0;
+    // Lightning
+    if (Math.floor(frameCount/30)%5===0) {
+      const bx=c.x+c.w*.15, by=c.y+c.h*.35, bs=9;
+      ctx.fillStyle='#FBBF24'; ctx.shadowColor='#FBBF24'; ctx.shadowBlur=10;
+      ctx.beginPath();
+      ctx.moveTo(bx,by); ctx.lineTo(bx-bs*.5,by+bs*.7);
+      ctx.lineTo(bx,by+bs*.4); ctx.lineTo(bx-bs*.3,by+bs*1.4);
+      ctx.lineTo(bx+bs*.6,by+bs*.5); ctx.lineTo(bx+bs*.1,by+bs*.5);
+      ctx.closePath(); ctx.fill();
+      ctx.shadowColor='transparent'; ctx.shadowBlur=0;
+    }
+  });
+}
+
+// ── Draw Golden Horn ─────────────────────────────────────────
+function drawHorn(h) {
+  h.pulse = (h.pulse||0) + 0.06;
+  const pulse = Math.sin(h.pulse)*.2+1;
+  const r = 24*pulse;
+  for(let i=3;i>0;i--) {
+    ctx.beginPath(); ctx.arc(h.x,h.y,r*(1+i*.3),0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,215,0,${.05*i})`; ctx.fill();
+  }
+  const g=ctx.createRadialGradient(h.x,h.y,0, h.x,h.y,r*1.6);
+  g.addColorStop(0,'rgba(255,220,50,0.85)'); g.addColorStop(.6,'rgba(255,180,50,0.3)'); g.addColorStop(1,'rgba(255,160,0,0)');
+  ctx.beginPath(); ctx.arc(h.x,h.y,r*1.6,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+  ctx.save();
+  ctx.translate(h.x, h.y);
+  ctx.rotate(h.pulse*.5);
+  ctx.beginPath();
+  ctx.moveTo(0,-r); ctx.lineTo(r*.35,r*.5); ctx.lineTo(0,r*.3); ctx.lineTo(-r*.35,r*.5);
+  ctx.closePath();
+  const hg=ctx.createLinearGradient(0,-r,0,r*.5);
+  hg.addColorStop(0,'#fffde0'); hg.addColorStop(.4,'#FFD700'); hg.addColorStop(1,'#f59e0b');
+  ctx.fillStyle=hg; ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,0.7)'; ctx.lineWidth=2; ctx.stroke();
+  for(let i=0;i<5;i++){
+    const a=h.pulse+i*(Math.PI*2/5);
+    drawStarShape(Math.cos(a)*r*1.35, Math.sin(a)*r*1.35, 5, 4, '#FFD700');
+  }
+  ctx.restore();
+  ctx.fillStyle='#FFD700';
+  ctx.font="bold 12px 'Fredoka One',cursive";
+  ctx.textAlign='center';
+  ctx.fillText('✨ Golden Horn ✨', h.x, h.y+r*2.2);
+}
+
+// ── Update ───────────────────────────────────────────────────
+function update() {
+  if (state !== STATES.PLAYING) return;
+  frameCount++;
+
+  player.vx=0; player.vy=0;
+  if (isLeft())  { player.vx=-PLAYER_SPEED; player.dir=-1; }
+  if (isRight()) { player.vx= PLAYER_SPEED; player.dir= 1; }
+  if (isUp())    player.vy=-PLAYER_SPEED;
+  if (isDown())  player.vy= PLAYER_SPEED;
+  if (player.vx!==0 && player.vy!==0) { player.vx*=.707; player.vy*=.707; }
+
+  player.x = Math.max(PLAYER_SIZE/2, Math.min(BASE_W-PLAYER_SIZE/2, player.x+player.vx));
+  player.y = Math.max(PLAYER_SIZE/2, Math.min(BASE_H-PLAYER_SIZE/2, player.y+player.vy));
+  player.isMoving = player.vx!==0 || player.vy!==0;
+
+  if (player.isMoving) {
+    player.trail.unshift({x:player.x, y:player.y});
+    if (player.trail.length>24) player.trail.pop();
+  } else if (player.trail.length>0) { player.trail.pop(); }
+
+  if (player.invincible>0) player.invincible--;
+
+  // Collect stars
+  stars = stars.filter(s => {
+    if (dist(player,s) < PLAYER_SIZE*.9) {
+      score+=10; sfxStar();
+      spawnParticles(s.x,s.y,['#FFD700','#FFF','#FFA500','#FFEC8B'],12,3,45);
+      updateHUD(); return false;
+    } return true;
+  });
+
+  // Collect gems
+  gems = gems.filter(g => {
+    if (dist(player,g) < PLAYER_SIZE*.9) {
+      score+=25; sfxGem();
+      spawnParticles(g.x,g.y,['#c084fc','#818cf8','#38bdf8','#fff','#a78bfa'],18,3.5,55);
+      updateHUD(); return false;
+    } return true;
+  });
+
+  // Cloud collision
+  if (player.invincible===0) {
+    clouds.forEach(c => {
+      if (circleRect(player.x,player.y,PLAYER_SIZE*.4, c.x-c.w/2,c.y-c.h/2,c.w,c.h)) {
+        lives--; player.invincible=90; sfxCloud();
+        spawnParticles(player.x,player.y,['#374151','#6b7280','#94a3b8'],10,2,35);
+        updateHUD();
+        if (lives<=0) { sfxGameOver(); setTimeout(()=>showScreen(STATES.GAME_OVER),300); }
+      }
+    });
+  }
+
+  // Touch Golden Horn → level complete
+  if (horn && dist(player,horn)<PLAYER_SIZE) {
+    sfxLevelComplete();
+    spawnParticles(horn.x,horn.y,['#FFD700','#fff','#ff69b4','#c084fc','#67e8f9'],30,4,70);
+    state = STATES.LEVEL_COMPLETE;
+    setTimeout(()=>showScreen(level>=3 ? STATES.WIN : STATES.LEVEL_COMPLETE),400);
+    return;
+  }
+
+  // Move clouds
+  clouds.forEach(c => {
+    c.x+=c.vx; c.y+=c.vy;
+    if (c.x-c.w/2<0||c.x+c.w/2>BASE_W) c.vx*=-1;
+    if (c.y-c.h/2<0||c.y+c.h/2>BASE_H) c.vy*=-1;
+  });
+
+  // Update particles
+  particles = particles.filter(p => {
+    p.x+=p.vx; p.y+=p.vy; p.vy+=0.05; p.vx*=.97; p.vy*=.97; p.life--;
+    return p.life>0;
+  });
+
+  // Update confetti
+  confetti = confetti.filter(c => {
+    c.x+=c.vx; c.y+=c.vy; c.vy+=0.15; c.rot+=c.rotv; c.life--;
+    return c.life>0;
+  });
+}
+
+// ── HUD ──────────────────────────────────────────────────────
+function updateHUD() {
+  document.getElementById('hudLevel').textContent = `Level ${level}`;
+  document.getElementById('hudLives').textContent = '🦄'.repeat(Math.max(0,lives));
+  document.getElementById('hudScore').textContent = `⭐ ${score}`;
+}
+
+// ── Render ───────────────────────────────────────────────────
+function render() {
+  ctx.clearRect(0, 0, BASE_W, BASE_H);
+  if (state===STATES.PLAYING || state===STATES.LEVEL_COMPLETE) {
+    drawBackground(level);
+    drawTrail(player.trail);
+    drawStars(stars);
+    drawGems(gems);
+    if (horn) drawHorn(horn);
+    drawClouds(clouds);
+    particles.forEach(drawParticle);
+    drawUnicorn(player.x, player.y, player.dir, player.invincible, player.isMoving);
+  } else if (state===STATES.WIN) {
+    drawBackground(level);
+    confetti.forEach(c => {
+      ctx.save();
+      ctx.translate(c.x, c.y);
+      ctx.rotate(c.rot);
+      ctx.globalAlpha = Math.min(1, c.life/20);
+      ctx.fillStyle = c.color;
+      ctx.fillRect(-c.size/2, -c.size/4, c.size, c.size/2);
+      ctx.restore();
+    });
+  }
+}
+
+// ── Confetti ─────────────────────────────────────────────────
+function spawnConfetti() {
+  const cols=['#ff69b4','#ffd700','#c084fc','#67e8f9','#86efac','#fbbf24','#f87171'];
+  for(let i=0;i<7;i++) confetti.push({
+    x:Math.random()*BASE_W, y:-10,
+    vx:(Math.random()-.5)*3.5, vy:1+Math.random()*2.5,
+    rot:Math.random()*Math.PI*2, rotv:(Math.random()-.5)*.15,
+    size:6+Math.random()*9,
+    color:cols[Math.floor(Math.random()*cols.length)],
+    life:180+Math.random()*60
+  });
+}
+
+// ── Screen Manager ────────────────────────────────────────────
+function showScreen(s) {
+  state = s;
+  const $ = id => document.getElementById(id);
+  overlay.classList.remove('hidden');
+  $('overlayLevel').textContent=''; $('overlayLives').textContent='';
+  $('overlayHint').style.display='block';
+
+  if (s===STATES.TITLE) {
+    $('overlayTitle').textContent='✨ Sparkle Quest ✨';
+    $('overlaySub').innerHTML='Help the unicorn collect stars &amp; gems,<br>avoid storm clouds, and find the Golden Horn!';
+    $('overlayBtn').textContent='▶ Start Adventure';
+    $('overlayHint').textContent='Arrow keys / WASD to move  |  Touch D-pad on mobile';
+  } else if (s===STATES.LEVEL_INTRO) {
+    $('overlayTitle').textContent=LEVEL_DATA[level-1].name;
+    $('overlaySub').textContent=level===1?'Collect ⭐ stars and 💎 gems, avoid ⚡ clouds!':
+                                level===2?'More clouds, bigger gems — stay sharp!':
+                                          'The final challenge — reach the Golden Horn!';
+    $('overlayBtn').textContent=`▶ Play Level ${level}`;
+    $('overlayHint').textContent='';
+  } else if (s===STATES.LEVEL_COMPLETE) {
+    $('overlayTitle').textContent='Level Complete! 🎉';
+    $('overlaySub').textContent=`Amazing! Get ready for level ${level+1}!`;
+    $('overlayLevel').textContent=`Score so far: ⭐ ${score}`;
+    $('overlayBtn').textContent='▶ Next Level';
+    $('overlayHint').textContent='';
+  } else if (s===STATES.WIN) {
+    sfxWin();
+    $('overlayTitle').textContent='You Win! ✨🌈✨';
+    $('overlaySub').innerHTML=`Amazing adventure, Sparkle Hero!<br>Final Score: ⭐ <strong>${score}</strong>`;
+    $('overlayBtn').textContent='▶ Play Again';
+    $('overlayHint').textContent='';
+    const iv=setInterval(()=>{ if(state===STATES.WIN) spawnConfetti(); else clearInterval(iv); }, 110);
+    spawnConfetti();
+  } else if (s===STATES.GAME_OVER) {
+    $('overlayTitle').textContent='Oh No! 😢';
+    $('overlaySub').innerHTML=`The storm clouds got you!<br>Score: ⭐ ${score}`;
+    $('overlayBtn').textContent='▶ Try Again';
+    $('overlayHint').textContent='';
+  }
+}
+
+function handleOverlayBtn() {
+  getAudio();
+  if (state===STATES.TITLE||state===STATES.GAME_OVER||state===STATES.WIN) {
+    level=1; score=0; lives=3; updateHUD();
+    buildLevel(level); showScreen(STATES.LEVEL_INTRO);
+  } else if (state===STATES.LEVEL_INTRO) {
+    overlay.classList.add('hidden');
+    state=STATES.PLAYING; frameCount=0;
+  } else if (state===STATES.LEVEL_COMPLETE) {
+    level++; buildLevel(level); updateHUD(); showScreen(STATES.LEVEL_INTRO);
+  }
+}
+
+// ── Title / Overlay Background ────────────────────────────────
+let titleBg=0;
+function drawTitleBg() {
+  titleBg+=0.01;
+  const t=Math.sin(titleBg)*.5+.5;
+  const grd=ctx.createLinearGradient(0,0,BASE_W,BASE_H);
+  grd.addColorStop(0,  lerpColor('#ffe4f0','#c8d4ff',t));
+  grd.addColorStop(.5, lerpColor('#e8c8ff','#ffd6f0',t));
+  grd.addColorStop(1,  lerpColor('#d4f0e8','#ffe8b8',t));
+  ctx.fillStyle=grd; ctx.fillRect(0,0,BASE_W,BASE_H);
+  // Floating mini unicorns (drawn as tiny chibi silhouettes)
+  for(let i=0;i<4;i++){
+    const bx=((i*220+titleBg*22*(i%2===0?1:-1))%BASE_W+BASE_W)%BASE_W;
+    const by=60+i*100+Math.sin(titleBg+i)*18;
+    ctx.save();
+    ctx.globalAlpha=0.1;
+    ctx.translate(bx, by);
+    ctx.scale(0.45, 0.45);
+    drawUnicorn(0, 0, 1, 0, false);
+    ctx.restore();
+  }
+  // Floating stars
+  for(let i=0;i<14;i++){
+    const bx=((i*73+titleBg*14*(i%3===0?1:-1))%BASE_W+BASE_W)%BASE_W;
+    const by=((i*57+titleBg*10)%BASE_H+BASE_H)%BASE_H;
+    const bs=Math.sin(titleBg*2+i)*.5+1;
+    ctx.globalAlpha=0.28;
+    drawStarShape(bx, by, 5*bs, 5, '#FFD700');
+    ctx.globalAlpha=1;
+  }
+}
+
+// ── Main Loop ─────────────────────────────────────────────────
+function loop() {
+  if (state===STATES.TITLE||state===STATES.LEVEL_INTRO||
+      state===STATES.LEVEL_COMPLETE||state===STATES.GAME_OVER) {
+    drawTitleBg();
+    particles.forEach(drawParticle);
+    particles=particles.filter(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.vy+=.05; p.vx*=.97; p.vy*=.97; p.life--;
+      return p.life>0;
+    });
+  } else {
+    update();
+    render();
+  }
+  requestAnimationFrame(loop);
+}
+
+// ── Init ──────────────────────────────────────────────────────
+updateHUD();
+showScreen(STATES.TITLE);
+loop();
+</script>
+</body>
+</html>
