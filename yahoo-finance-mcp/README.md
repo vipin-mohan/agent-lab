@@ -92,10 +92,17 @@ The server uses SSE transport, which means it runs as a normal web server. You c
 
 ```
 yahoo-finance-mcp/
-├── server.py           # MCP server and all 7 tool definitions
-├── requirements.txt    # Python dependencies
-├── .env.example        # Environment variable template
-└── README.md
+├── server.py                        # MCP server and all 7 tool definitions
+├── requirements.txt                 # Python dependencies
+├── Dockerfile                       # Hugging Face Spaces deployment
+├── .dockerignore
+├── .env.example                     # Environment variable template
+├── DEPLOYMENT.md                    # Step-by-step HF Spaces deploy guide
+├── README.md
+└── docs/
+    └── screenshots/
+        ├── inspector-connected.png
+        └── inspector-tool-call.png
 ```
 
 ---
