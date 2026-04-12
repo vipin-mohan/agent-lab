@@ -2,18 +2,20 @@
 Yahoo Finance MCP Server
 ========================
 A production-quality Model Context Protocol (MCP) server that exposes
-stock market data tools via HTTP/SSE (Streamable HTTP) transport.
+stock market data tools via SSE transport.
 
 All data is fetched from Yahoo Finance via the `yfinance` library —
-no API key required. Designed to be connected to Claude Desktop or any
-MCP-compatible AI client.
+no API key required. Designed to be connected to Claude Desktop, MCP
+Inspector, or any MCP-compatible AI client.
 
 Usage:
     python server.py
 
 Endpoints:
-    POST/GET  /mcp      — MCP Streamable HTTP endpoint
-    GET       /health   — Health check
+    GET   /sse       — MCP SSE stream (connect here from MCP Inspector)
+    POST  /messages  — MCP message posting endpoint
+    GET   /health    — Health check
+    GET   /docs      — FastAPI Swagger UI
 """
 
 import math
@@ -24,11 +26,10 @@ from typing import Any
 import uvicorn
 import yfinance as yf
 from dotenv import load_dotenv
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from mcp.server.fastmcp import FastMCP
-from starlette.applications import Starlette
-from starlette.requests import Request
-from starlette.responses import JSONResponse
-from starlette.routing import Mount, Route
+from mcp.server.sse import SseServerTransport
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -37,7 +38,7 @@ from starlette.routing import Mount, Route
 load_dotenv()
 
 HOST = os.getenv("HOST", "0.0.0.0")
-PORT = int(os.getenv("PORT", "8000"))
+PORT = int(os.getenv("PORT", "7860"))
 
 # ---------------------------------------------------------------------------
 # FastMCP instance
@@ -641,31 +642,48 @@ def get_earnings(ticker: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Health check endpoint (mounted alongside MCP)
+# Application assembly — FastAPI + explicit SSE transport
 # ---------------------------------------------------------------------------
 
+# Using explicit SSE transport rather than FastMCP's built-in HTTP runner.
+# FastMCP's streamable_http_app() has mounting issues in some deployment
+# environments (including Hugging Face Spaces). The explicit pattern below
+# gives full control over routing and works reliably with MCP Inspector.
 
-async def health(request: Request) -> JSONResponse:
-    """Simple liveness probe — useful for Docker/K8s health checks."""
-    return JSONResponse({"status": "ok", "server": "yahoo-finance-mcp"})
+app = FastAPI(title="Yahoo Finance MCP", version="1.0.0")
+
+# SseServerTransport handles the SSE stream and message posting.
+# The path passed here ("/messages") is where clients POST messages back.
+sse = SseServerTransport("/messages")
 
 
-# ---------------------------------------------------------------------------
-# Application assembly
-# ---------------------------------------------------------------------------
+@app.get("/sse")
+async def handle_sse(request: Request):
+    """
+    MCP SSE endpoint — connect here from MCP Inspector or any MCP client.
+    Transport: SSE, URL: <host>/sse
+    """
+    async with sse.connect_sse(
+        request.scope, request.receive, request._send
+    ) as streams:
+        await mcp._mcp_server.run(
+            streams[0],
+            streams[1],
+            mcp._mcp_server.create_initialization_options(),
+        )
 
-# Build the MCP ASGI app using Streamable HTTP transport.
-# FastMCP.streamable_http_app() returns a Starlette ASGI application
-# that handles both the initial HTTP POST (for request) and the SSE stream
-# (for streaming responses back to the client).
-mcp_app = mcp.streamable_http_app()
 
-app = Starlette(
-    routes=[
-        Route("/health", health, methods=["GET"]),
-        Mount("/mcp", app=mcp_app),
-    ]
-)
+@app.post("/messages")
+async def handle_messages(request: Request):
+    """MCP message posting endpoint — used by the SSE transport internally."""
+    await sse.handle_post_message(request.scope, request.receive, request._send)
+
+
+@app.get("/health")
+async def health():
+    """Liveness probe — useful for Docker/K8s health checks."""
+    return {"status": "ok", "server": "yahoo-finance-mcp"}
+
 
 # ---------------------------------------------------------------------------
 # Entry point
@@ -675,9 +693,10 @@ if __name__ == "__main__":
     print(f"\n{'=' * 60}")
     print("  Yahoo Finance MCP Server")
     print(f"{'=' * 60}")
-    print(f"  MCP endpoint : http://{HOST}:{PORT}/mcp")
+    print(f"  SSE endpoint : http://{HOST}:{PORT}/sse")
     print(f"  Health check : http://localhost:{PORT}/health")
-    print(f"  Transport    : Streamable HTTP (SSE)")
+    print(f"  API docs     : http://localhost:{PORT}/docs")
+    print(f"  Transport    : SSE")
     print(f"{'=' * 60}\n")
 
     uvicorn.run(
