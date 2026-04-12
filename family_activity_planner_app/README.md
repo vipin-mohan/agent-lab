@@ -98,6 +98,6 @@ ANTHROPIC_API_KEY = "sk-ant-..."
 
 ## About the Author
 
-I'm a product leader at AWS where I lead agentic AI products for Amazon Q, having shipped 15+ AI agent integrations using MCP and A2A protocols. I'm also a parent of two — which is exactly why I built this. The best products come from real problems.
+I'm a product leader at AWS where I lead agentic AI products for Amazon Quick, having shipped 15+ AI agent integrations using MCP and A2A protocols. I'm also a parent of two — which is exactly why I built this. The best products come from real problems.
 
 [LinkedIn](https://www.linkedin.com/in/vipinmohan) · [GitHub](https://github.com/vipin-mohan)
