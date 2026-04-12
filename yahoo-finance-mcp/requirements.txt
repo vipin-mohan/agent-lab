@@ -1,0 +1,6 @@
+mcp[server]>=1.0.0
+yfinance>=0.2.40
+uvicorn>=0.30.0
+starlette>=0.40.0
+python-dotenv>=1.0.0
+pandas>=2.0.0
