@@ -12,7 +12,7 @@
 ## Deploy via Git
 
 ```bash
-git remote add space https://huggingface.co/spaces/vipin-mohan/yahoo-finance-mcp
+git remote add space https://huggingface.co/spaces/vipinmohan/yahoo-finance-mcp
 git push space main
 ```
 
@@ -21,15 +21,15 @@ git push space main
 ```bash
 pip install huggingface_hub
 huggingface-cli login
-huggingface-cli upload vipin-mohan/yahoo-finance-mcp . --repo-type=space
+huggingface-cli upload vipinmohan/yahoo-finance-mcp . --repo-type=space
 ```
 
 ## Verify deployment
 
-- Visit: https://vipin-mohan-yahoo-finance-mcp.hf.space/health
+- Visit: https://vipinmohan-yahoo-finance-mcp.hf.space/health
 - Should return: `{"status": "ok", "server": "yahoo-finance-mcp"}`
 - Space build logs available at:
-  https://huggingface.co/spaces/vipin-mohan/yahoo-finance-mcp/logs
+  https://huggingface.co/spaces/vipinmohan/yahoo-finance-mcp/logs
 
 ## Redeploying after changes
 

@@ -1,3 +1,12 @@
+---
+title: Yahoo Finance MCP
+emoji: 📈
+colorFrom: green
+colorTo: blue
+sdk: docker
+pinned: false
+---
+
 # Yahoo Finance MCP Server
 
 An MCP server that exposes Yahoo Finance data as callable tools for AI agents and LLM clients — stock quotes, company financials, earnings history, and price history. Built with Python and `yfinance`. No API key needed.
@@ -10,8 +19,8 @@ An MCP server that exposes Yahoo Finance data as callable tools for AI agents an
 
 The server is deployed and publicly accessible on Hugging Face Spaces (free tier, always-on, no sign-in required):
 
-- **MCP endpoint:** https://vipin-mohan-yahoo-finance-mcp.hf.space/mcp
-- **Health check:** https://vipin-mohan-yahoo-finance-mcp.hf.space/health
+- **MCP endpoint:** https://vipinmohan-yahoo-finance-mcp.hf.space/mcp
+- **Health check:** https://vipinmohan-yahoo-finance-mcp.hf.space/health
 
 ---
 
@@ -170,7 +179,7 @@ Claude Desktop cannot connect directly to a remote HTTP/SSE server, but it can p
       "command": "npx",
       "args": [
         "mcp-remote",
-        "https://vipin-mohan-yahoo-finance-mcp.hf.space/mcp"
+        "https://vipinmohan-yahoo-finance-mcp.hf.space/mcp"
       ]
     }
   }

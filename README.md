@@ -45,7 +45,7 @@ An MCP (Model Context Protocol) server that gives AI agents and LLM clients live
 
 **Tech:** Python · MCP SDK · yfinance · FastMCP · Uvicorn
 
-[Live Demo](https://vipin-mohan-yahoo-finance-mcp.hf.space/health) · [Source](./yahoo-finance-mcp/)
+[Live Demo](https://vipinmohan-yahoo-finance-mcp.hf.space/health) · [Source](./yahoo-finance-mcp/)
 
 ---
 
