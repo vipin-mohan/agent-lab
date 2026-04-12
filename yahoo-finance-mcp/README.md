@@ -19,8 +19,24 @@ An MCP server that exposes Yahoo Finance data as callable tools for AI agents an
 
 The server is deployed and publicly accessible on Hugging Face Spaces (free tier, always-on, no sign-in required):
 
-- **MCP endpoint:** https://vipinmohan-yahoo-finance-mcp.hf.space/mcp
+- **SSE endpoint:** https://vipinmohan-yahoo-finance-mcp.hf.space/sse
 - **Health check:** https://vipinmohan-yahoo-finance-mcp.hf.space/health
+
+---
+
+## Screenshots
+
+**Connecting via MCP Inspector**
+
+![MCP Inspector — connected to yahoo-finance-mcp over SSE](docs/screenshots/inspector-connected.png)
+
+Connected to the server over SSE transport. All 7 tools are available and ready to call.
+
+**Live tool call: get_stock_quote for AAPL**
+
+![get_stock_quote result showing real-time Apple stock data](docs/screenshots/inspector-tool-call.png)
+
+Calling get_stock_quote with ticker AAPL. Live data returned directly from Yahoo Finance — no API key required.
 
 ---
 
@@ -52,11 +68,11 @@ I picked finance as the domain because it's one I care about personally. Investi
 
 1. You connect an MCP client (Claude Desktop, a custom agent, or any MCP-compatible tool) to the server's HTTP endpoint
 2. The client reads the tool manifest — seven tools, each with typed parameters and descriptions
-3. When the AI decides a tool is relevant, it sends a structured POST to `/mcp`
+3. When the AI decides a tool is relevant, it sends a structured message over the `/sse` connection
 4. The server calls `yfinance`, normalizes the response (handling NaN, None, and missing fields), and returns structured JSON
 5. The response streams back to the client over SSE — the same connection, no polling required
 
-The server uses Streamable HTTP transport, which means it runs as a normal web server. You can test individual tools with `curl`, inspect responses in a browser, or point any MCP-compatible client at it over a network.
+The server uses SSE transport, which means it runs as a normal web server. You can test individual tools with MCP Inspector, or point any MCP-compatible client at it over a network.
 
 ---
 
@@ -112,7 +128,7 @@ pip install -r requirements.txt
 
 ```bash
 cp .env.example .env
-# Edit .env if you want a port other than 8000
+# Edit .env if you want a port other than 7860
 ```
 
 ### 5. Start the server
@@ -127,18 +143,43 @@ You should see:
 ============================================================
   Yahoo Finance MCP Server
 ============================================================
-  MCP endpoint : http://0.0.0.0:8000/mcp
-  Health check : http://localhost:8000/health
-  Transport    : Streamable HTTP (SSE)
+  SSE endpoint : http://0.0.0.0:7860/sse
+  Health check : http://localhost:7860/health
+  API docs     : http://localhost:7860/docs
+  Transport    : SSE
 ============================================================
 ```
 
 Confirm it's running:
 
 ```bash
-curl http://localhost:8000/health
+curl http://localhost:7860/health
 # {"status":"ok","server":"yahoo-finance-mcp"}
 ```
+
+---
+
+## Connecting to MCP Inspector
+
+[MCP Inspector](https://github.com/modelcontextprotocol/inspector) is the easiest way to test the server — no Claude Desktop or Node.js config required.
+
+### 1. Run MCP Inspector
+
+```bash
+npx @modelcontextprotocol/inspector
+```
+
+### 2. Connect to the server
+
+1. Set **Transport Type:** `SSE`
+2. Set **URL:** `https://vipinmohan-yahoo-finance-mcp.hf.space/sse`
+3. Set **Connection Type:** `Direct`
+4. Click **Connect**
+5. A green **Connected** status confirms success
+6. Click the **Tools** tab to see all 7 available tools
+7. Select any tool, enter a ticker symbol, click **Run Tool**
+
+To connect to a local instance instead, use `http://localhost:7860/sse`.
 
 ---
 
@@ -158,8 +199,8 @@ Add the following inside the `mcpServers` object:
   "mcpServers": {
     "yahoo-finance": {
       "transport": {
-        "type": "http",
-        "url": "http://localhost:8000/mcp"
+        "type": "sse",
+        "url": "http://localhost:7860/sse"
       }
     }
   }
@@ -179,7 +220,7 @@ Claude Desktop cannot connect directly to a remote HTTP/SSE server, but it can p
       "command": "npx",
       "args": [
         "mcp-remote",
-        "https://vipinmohan-yahoo-finance-mcp.hf.space/mcp"
+        "https://vipinmohan-yahoo-finance-mcp.hf.space/sse"
       ]
     }
   }
