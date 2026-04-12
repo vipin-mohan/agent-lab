@@ -45,7 +45,7 @@ An MCP (Model Context Protocol) server that gives AI agents and LLM clients live
 
 **Tech:** Python · MCP SDK · yfinance · FastMCP · Uvicorn
 
-[Live Demo](https://vipinmohan-yahoo-finance-mcp.hf.space/health) · [Source](./yahoo-finance-mcp/)
+[Live Demo](https://huggingface.co/spaces/vipinmohan/yahoo-finance-mcp) · [Source](./yahoo-finance-mcp/)
 
 ---
 
@@ -57,6 +57,19 @@ A FastAPI backend with persistent JSON storage and a minimal, dark-mode task man
 **Tech:** Python · FastAPI · Uvicorn
 
 [Source](./task-api/)
+
+---
+
+### 🦄 Sparkle Quest
+> A father-daughter browser game built with Canvas 2D
+
+A browser-based adventure game featuring a chibi/kawaii unicorn character, built as a weekend project with my daughter. Fully responsive across desktop and mobile with touch D-pad support for small screens.
+
+**Why I built it:** The best way to stay sharp as a product person is to ship things. Even games. Especially games — they have to be fun on the first try, with no manual and no onboarding. That's a harder product bar than most enterprise software.
+
+**Tech:** JavaScript · Canvas 2D · Responsive CSS
+
+[Play](./sparkle-quest/) · [Source](./sparkle-quest/)
 
 ---
 
@@ -78,6 +91,7 @@ Every project here started as a real problem I wanted to solve — and every age
 | Family Activity Planner | Python | Streamlit | Claude / OpenAI / Gemini |
 | Yahoo Finance MCP | Python | FastMCP / Uvicorn | — |
 | Task API | Python | FastAPI | — |
+| Sparkle Quest | JavaScript | Canvas 2D | — |
 
 All LLM-powered apps support Anthropic Claude, OpenAI, and Google Gemini based on available API keys.
 
@@ -99,4 +113,4 @@ All LLM-powered apps support Anthropic Claude, OpenAI, and Google Gemini based o
 
 I'm Vipin Mohan — Head of Product for Agentic AI at AWS, UC Berkeley Haas MBA coach, and parent of two. I've spent my career at the intersection of deep technical systems and products that real people use.
 
-[LinkedIn](https://www.linkedin.com/in/vipinmohan) · [GitHub](https://github.com/vipin-mohan)
+[LinkedIn](https://www.linkedin.com/in/vipinmohan) · [GitHub](https://github.com/vipin-mohan/agent-lab)

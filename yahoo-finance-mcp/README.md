@@ -19,6 +19,7 @@ An MCP server that exposes Yahoo Finance data as callable tools for AI agents an
 
 The server is deployed and publicly accessible on Hugging Face Spaces (free tier, always-on, no sign-in required):
 
+- **Space:** https://huggingface.co/spaces/vipinmohan/yahoo-finance-mcp
 - **SSE endpoint:** https://vipinmohan-yahoo-finance-mcp.hf.space/sse
 - **Health check:** https://vipinmohan-yahoo-finance-mcp.hf.space/health
 
@@ -270,4 +271,4 @@ I'm Vipin Mohan — Head of Product for Agentic AI at AWS, UC Berkeley Haas MBA 
 
 This repo is where I build things outside of work: real apps, real use cases, using the same AI APIs and agent patterns I work with professionally. Finance and agentic AI felt like a natural intersection — and `yfinance` makes the barrier to entry zero.
 
-[LinkedIn](https://www.linkedin.com/in/vipinmohan) · [GitHub](https://github.com/vipin-mohan)
+[LinkedIn](https://www.linkedin.com/in/vipinmohan) · [GitHub](https://github.com/vipin-mohan/agent-lab)
