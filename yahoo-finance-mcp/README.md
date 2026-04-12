@@ -6,6 +6,15 @@ An MCP server that exposes Yahoo Finance data as callable tools for AI agents an
 
 ---
 
+## Hosted Demo
+
+The server is deployed and publicly accessible on Hugging Face Spaces (free tier, always-on, no sign-in required):
+
+- **MCP endpoint:** https://vipin-mohan-yahoo-finance-mcp.hf.space/mcp
+- **Health check:** https://vipin-mohan-yahoo-finance-mcp.hf.space/health
+
+---
+
 ## What It Does
 
 Yahoo Finance MCP gives AI assistants direct access to real stock market data through seven structured tools:
@@ -131,6 +140,8 @@ Open your Claude Desktop MCP config file:
 - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
 - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
+### Option A — Local server
+
 Add the following inside the `mcpServers` object:
 
 ```json
@@ -147,6 +158,26 @@ Add the following inside the `mcpServers` object:
 ```
 
 Restart Claude Desktop. The seven Yahoo Finance tools will appear in the tool picker automatically.
+
+### Option B — Hosted version (Hugging Face Spaces)
+
+Claude Desktop cannot connect directly to a remote HTTP/SSE server, but it can proxy through [`mcp-remote`](https://github.com/geelen/mcp-remote). This requires Node.js installed locally.
+
+```json
+{
+  "mcpServers": {
+    "yahoo-finance": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://vipin-mohan-yahoo-finance-mcp.hf.space/mcp"
+      ]
+    }
+  }
+}
+```
+
+`npx` will download `mcp-remote` on first run. No separate install step needed beyond having Node.js available.
 
 ---
 
