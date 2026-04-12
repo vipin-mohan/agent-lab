@@ -147,7 +147,7 @@ Then open the URL printed in the terminal (typically `http://localhost:8501`).
 
 ## About the Author
 
-I'm a product leader with 8+ years at AWS, where I currently lead agentic AI products for Amazon Q. I've shipped 15+ AI agent integrations using MCP and A2A protocols, and I coach MBA students at UC Berkeley Haas on breaking into product management.
+I'm a product leader with 8+ years at AWS, where I currently lead agentic AI products for Amazon Quick. I've shipped 15+ AI agent integrations using MCP and A2A protocols, and I coach MBA students at UC Berkeley Haas on breaking into product management.
 
 This project sits at the intersection of those two worlds — agentic AI and PM career development.
 
