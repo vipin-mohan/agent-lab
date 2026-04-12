@@ -36,6 +36,19 @@ Enter your zip code, your kids' ages, and how much time and energy you have — 
 
 ---
 
+### 📈 Yahoo Finance MCP
+> A real-time financial data server for AI agents
+
+An MCP (Model Context Protocol) server that gives AI agents and LLM clients live access to stock market data — quotes, company financials, earnings history, and price trends. Point any MCP-compatible client at it and ask questions like "How has Apple's free cash flow trended over the last 4 years?" or "Which of these three stocks has the best earnings surprise history?"
+
+**What makes it different:** Most finance tools are built for humans — dashboards, charts, UI. This one is built for agents. The tools are designed to return clean, structured JSON that an LLM can reason over directly, with graceful handling of the data gaps and inconsistencies that yfinance regularly throws.
+
+**Tech:** Python · MCP SDK · yfinance · FastMCP · Uvicorn
+
+[Live Demo](https://vipin-mohan-yahoo-finance-mcp.hf.space/health) · [Source](./yahoo-finance-mcp/)
+
+---
+
 ### ⚙️ Task API
 > A clean REST API with a built-in UI for managing tasks
 
@@ -53,7 +66,7 @@ I've spent 8+ years in product management at AWS, Google, and Walmart — and th
 
 This repo is my way of staying close to the code, building intuition for what's hard to build vs. easy to build, and demonstrating that I think about AI products as a practitioner — not just a strategist.
 
-Every project here started as a real problem I wanted to solve.
+Every project here started as a real problem I wanted to solve — and every agentic project reflects the same patterns I work with professionally: tool design, agent interoperability, and building for LLM clients, not just human ones.
 
 ---
 
@@ -63,6 +76,7 @@ Every project here started as a real problem I wanted to solve.
 |---|---|---|---|
 | PM Career Coach | Python | Streamlit | Claude / OpenAI / Gemini |
 | Family Activity Planner | Python | Streamlit | Claude / OpenAI / Gemini |
+| Yahoo Finance MCP | Python | FastMCP / Uvicorn | — |
 | Task API | Python | FastAPI | — |
 
 All LLM-powered apps support Anthropic Claude, OpenAI, and Google Gemini based on available API keys.
@@ -83,6 +97,6 @@ All LLM-powered apps support Anthropic Claude, OpenAI, and Google Gemini based o
 
 ## About Me
 
-I'm Vipin Mohan — Head of Product for Agentic AI at AWS, UC Berkeley Haas MBA coach, co-founder of a smart water tech startup, and parent of two. I've spent my career at the intersection of deep technical systems and products that real people use.
+I'm Vipin Mohan — Head of Product for Agentic AI at AWS, UC Berkeley Haas MBA coach, and parent of two. I've spent my career at the intersection of deep technical systems and products that real people use.
 
 [LinkedIn](https://www.linkedin.com/in/vipinmohan) · [GitHub](https://github.com/vipin-mohan)
