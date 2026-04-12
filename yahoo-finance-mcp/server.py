@@ -27,7 +27,7 @@ import uvicorn
 import yfinance as yf
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from mcp.server.fastmcp import FastMCP
 from mcp.server.sse import SseServerTransport
 
@@ -677,6 +677,119 @@ async def handle_sse(request: Request):
 async def handle_messages(request: Request):
     """MCP message posting endpoint — used by the SSE transport internally."""
     await sse.handle_post_message(request.scope, request.receive, request._send)
+
+
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    """Landing page — displayed in the Hugging Face Spaces iframe."""
+    return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yahoo Finance MCP Server</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 680px;
+            margin: 60px auto;
+            padding: 0 24px;
+            color: #1a1a1a;
+            line-height: 1.6;
+        }
+        h1 { font-size: 1.6rem; margin-bottom: 4px; }
+        .subtitle { color: #666; margin-bottom: 32px; font-size: 0.95rem; }
+        .status {
+            display: inline-block;
+            background: #d4edda;
+            color: #155724;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 32px;
+        }
+        h2 { font-size: 1rem; margin-top: 28px; margin-bottom: 8px; color: #333; }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+        }
+        .tools {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        .tool {
+            background: #f8f8f8;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-family: monospace;
+        }
+        a { color: #0066cc; }
+        .footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid #eee; font-size: 0.85rem; color: #888; }
+    </style>
+</head>
+<body>
+    <h1>📈 Yahoo Finance MCP Server</h1>
+    <p class="subtitle">Real-time financial data tools for AI agents — no API key required</p>
+    <div class="status">● Running</div>
+
+    <h2>Connect via MCP Inspector</h2>
+    <pre>npx @modelcontextprotocol/inspector</pre>
+    <p>Then set <code>Transport: SSE</code> and URL:</p>
+    <pre>https://vipinmohan-yahoo-finance-mcp.hf.space/sse</pre>
+
+    <h2>Connect via Claude Desktop</h2>
+    <pre>{
+  "mcpServers": {
+    "yahoo-finance": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://vipinmohan-yahoo-finance-mcp.hf.space/sse"
+      ]
+    }
+  }
+}</pre>
+
+    <h2>Available Tools (7)</h2>
+    <div class="tools">
+        <div class="tool">get_stock_quote</div>
+        <div class="tool">get_stock_info</div>
+        <div class="tool">get_price_history</div>
+        <div class="tool">get_income_statement</div>
+        <div class="tool">get_balance_sheet</div>
+        <div class="tool">get_cash_flow</div>
+        <div class="tool">get_earnings</div>
+    </div>
+
+    <h2>Endpoints</h2>
+    <p>
+        <code>GET /sse</code> — MCP SSE connection endpoint<br>
+        <code>GET /health</code> — <a href="/health">liveness probe</a><br>
+        <code>GET /docs</code> — <a href="/docs">API documentation</a>
+    </p>
+
+    <div class="footer">
+        Built by <a href="https://linkedin.com/in/vipinmohan">Vipin Mohan</a> ·
+        <a href="https://github.com/vipin-mohan/agent-lab">GitHub</a> ·
+        Data via yfinance · For personal and educational use only
+    </div>
+</body>
+</html>
+"""
 
 
 @app.get("/health")
