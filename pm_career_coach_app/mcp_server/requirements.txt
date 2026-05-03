@@ -1,0 +1,21 @@
+# MCP server dependencies for PM Career Coach
+# Install with: pip install -r mcp_server/requirements.txt
+# (run from the pm_career_coach_app/ directory)
+
+# MCP framework — includes FastMCP, Starlette, and httpx
+mcp[cli]>=1.0.0
+
+# ASGI server
+uvicorn[standard]>=0.30.0
+
+# LLM providers (same as Streamlit app — at least one key must be set)
+anthropic>=0.40.0
+openai>=1.50.0
+google-genai>=0.8.0
+
+# RAG pipeline
+pinecone>=3.0.0
+sentence-transformers>=2.7.0
+
+# Utilities
+python-dotenv>=1.0.0
