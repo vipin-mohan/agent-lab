@@ -21,6 +21,41 @@ All four flows share a common foundation: an expert PM career coach persona with
 
 ---
 
+## Two Ways to Use This
+
+The PM Career Coach now ships as two surfaces that share the same coaching engine:
+
+**Streamlit app** — the original interactive UI with four tabs for human use. Enter your background, get coaching. Runs at [agent-lab-career-coach.streamlit.app](https://agent-lab-career-coach.streamlit.app/).
+
+**MCP server** — the same coaching capabilities exposed as MCP tools so AI agents and LLM clients can call them directly. Connect from Claude Desktop, Cursor, MCP Inspector, or any Python MCP client. See [`mcp_server/README.md`](./mcp_server/README.md) for full setup.
+
+Both surfaces import from the same `core/` library — same RAG pipeline, same LLM router, same prompt builders — so improvements to the coaching logic benefit both automatically.
+
+### MCP Server
+
+**Five tools, all backed by the RAG + LLM pipeline:**
+
+- `search_coaching_notes(query, top_k)` — direct semantic search over the PII-redacted coaching notes corpus (250+ Haas sessions). Returns raw chunks with similarity scores. Use this when you want coaching context without synthesis.
+- `get_interview_coaching(background, target_role, questions)` — structured PM interview prep: themes to lean on, STAR-formatted story guidance, likely questions for the role, delivery tips.
+- `analyze_skill_gaps(background, target_role, current_skills)` — maps your profile against PM hiring expectations and produces a 30–90 day development plan with specific deliverables.
+- `craft_career_positioning(background, target_companies, narrative)` — positioning statements, career narrative, company-type variations (big tech / startup / non-tech), and reusable resume/LinkedIn lines.
+- `score_job_match(resume, job_description)` — resume-to-JD scoring (1–10) from a recruiter's perspective, with strong matches, gaps, positioning advice, and concrete resume tweaks.
+
+**Authentication — static bearer token**
+
+The server uses a static bearer token via the `Authorization: Bearer <token>` header. The implementation gets the security details right:
+
+- Constant-time comparison (`hmac.compare_digest`) to prevent timing attacks
+- Proper `WWW-Authenticate: Bearer realm="mcp"` header on 401 responses so MCP clients can discover the auth scheme
+- CORS middleware so browser-based clients like MCP Inspector work without preflight failures
+- Server refuses to start if `MCP_BEARER_TOKEN` is not set — no insecure defaults
+
+This is appropriate for personal and single-tenant deployments where the operator controls both client and server. Multi-tenant production use cases would need a richer auth scheme — but that's outside the scope of this implementation.
+
+**Full setup instructions** — MCP Inspector configuration, Claude Desktop config snippet, Python MCP client example, and Hugging Face Spaces deployment guide: [`mcp_server/README.md`](./mcp_server/README.md).
+
+---
+
 ## Why I Built This
 
 I've been coaching MBA students at UC Berkeley Haas for nearly 5 years — over 250 one-on-one sessions helping candidates break into PM roles at Amazon, Google, Meta, Apple, OpenAI and others.
@@ -43,10 +78,11 @@ This means responses are grounded in real PM hiring patterns — not just what a
 ## Tech Stack
 
 - **Frontend:** Streamlit
+- **MCP server:** FastMCP, Starlette, Uvicorn
 - **AI:** Anthropic Claude (claude-sonnet-4-6), with automatic fallback to OpenAI (gpt-4.1-mini) and Google Gemini (gemini-2.0-flash)
 - **RAG Pipeline:** sentence-transformers (all-MiniLM-L6-v2) for embeddings, Pinecone for cloud vector storage
 - **Language:** Python 3.11+
-- **Hosting:** Streamlit Community Cloud
+- **Hosting:** Streamlit Community Cloud (Streamlit app) · Hugging Face Spaces / Docker (MCP server)
 
 ---
 
@@ -54,8 +90,11 @@ This means responses are grounded in real PM hiring patterns — not just what a
 
 Key pieces of this repo:
 
-- `pm_career_coach_app/pm_career_coach_app.py` — main Streamlit app.
-- `requirements.txt` — Python dependencies for the app (also mirrored at `pm_career_coach_app/requirements.txt`).
+- `pm_career_coach_app/pm_career_coach_app.py` — the original Streamlit app.
+- `pm_career_coach_app/core/` — shared coaching logic, RAG pipeline, multi-model LLM router. Used by both the Streamlit app and the MCP server. Streamlit-free; pure Python.
+- `pm_career_coach_app/mcp_server/` — MCP server exposing the coaching capabilities as agent-callable tools. See [`mcp_server/README.md`](./mcp_server/README.md) for details.
+- `requirements.txt` — Python dependencies for the Streamlit app (also at `pm_career_coach_app/requirements.txt`).
+- `pm_career_coach_app/mcp_server/requirements.txt` — Python dependencies for the MCP server.
 - `task-api/` — a separate FastAPI-based task API experiment (not required to run PM Career Coach).
 
 ---
@@ -110,6 +149,8 @@ streamlit run pm_career_coach_app/pm_career_coach_app.py
 ```
 
 Then open the URL printed in the terminal (typically `http://localhost:8501`).
+
+For the MCP server (separate from the Streamlit app), see the dedicated setup guide at [`mcp_server/README.md`](./mcp_server/README.md).
 
 ---
 

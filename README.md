@@ -23,6 +23,19 @@ An app that gives structured, personalized PM interview prep, gap analysis, care
 
 ---
 
+### 🔌 PM Career Coach MCP Server
+*The PM Career Coach, exposed as agent-callable tools via Model Context Protocol*
+
+The same coaching engine that powers the PM Career Coach Streamlit app — now exposed as an MCP server so AI agents and LLM clients can call it directly. Connect from Claude Desktop, Cursor, MCP Inspector, or any MCP-compatible client and ask the coach for interview prep, gap analysis, career positioning, or job match scoring through natural conversation.
+
+**What makes it different:** This is an MCP server built on a real RAG pipeline (250+ PII-redacted coaching sessions, Pinecone-backed semantic retrieval) — not a wrapper around a public API. It also ships with production-grade auth scaffolding: bearer token authentication with constant-time comparison, RFC-compliant `WWW-Authenticate` 401 responses, and CORS for browser clients.
+
+**Tech:** Python · FastMCP · Starlette · Uvicorn · Pinecone · Claude / OpenAI / Gemini
+
+[Source](./pm_career_coach_app/mcp_server) · [Architecture & Setup](./pm_career_coach_app/mcp_server/README.md)
+
+---
+
 ### 👨‍👧‍👦 Family Activity Planner
 > Location-aware activity suggestions for busy parents
 
@@ -88,6 +101,7 @@ Every project here started as a real problem I wanted to solve — and every age
 | | Language | Framework | AI |
 |---|---|---|---|
 | PM Career Coach | Python | Streamlit | Claude / OpenAI / Gemini |
+| PM Career Coach MCP Server | Python | FastMCP / Starlette / Uvicorn | Claude / OpenAI / Gemini |
 | Family Activity Planner | Python | Streamlit | Claude / OpenAI / Gemini |
 | Yahoo Finance MCP | Python | FastMCP / Uvicorn | — |
 | Task API | Python | FastAPI | — |
@@ -106,6 +120,8 @@ All LLM-powered apps support Anthropic Claude, OpenAI, and Google Gemini based o
 **Input validation is about protecting users, not just the model.** The Job Match tab blocks submission if either the resume or job description field is empty, with an explicit warning. The Family Activity Planner validates the zip code before calling the API, and child age inputs are widget-constrained to a valid range (ages 1–17, in 0.5-year increments, capped at 6 kids). These aren't security controls — they're guardrails against the most common failure mode: a user clicks submit before entering meaningful context, gets a generic or confused AI response, and loses trust in the tool. I'd rather gate the experience than waste a round-trip and leave someone thinking the product doesn't work.
 
 **What I'd add for content moderation in production.** Right now the system prompts are tightly scoped — the PM coach only discusses PM careers, the activity planner only suggests family activities — and that domain narrowing acts as a passive content filter. A model instructed to talk about product management gaps is unlikely to wander into harmful territory. But for a production deployment, I'd add two explicit layers: first, a lightweight classifier or Anthropic's moderation endpoint run on user inputs *before* the main call, to catch off-topic or harmful content at minimal cost; second, output validation to confirm the response stays within the expected domain before rendering it. I'd also add per-session rate limiting and structured logging (without PII) to spot anomalous usage patterns. The current architecture makes both additions straightforward — every AI call routes through a single function (`call_pm_coach` or `call_family_activity_planner`), so there's one interception point for the whole app.
+
+**Auth as a design choice, not just a security check.** The PM Career Coach MCP Server uses a single static bearer token, validated with constant-time comparison, with a proper `WWW-Authenticate` 401 header so MCP clients can discover the auth scheme. This is the right tool for the job: simple to reason about, fast to verify, and appropriate for personal and single-tenant deployments where I control both the client and the server. The implementation gets the small things right — constant-time comparison defeats timing attacks, no insecure defaults (the server refuses to start without a token), CORS middleware lets browser-based MCP clients connect, and the auth middleware exempts the health endpoint so platform probes work. What it deliberately does not do is also worth naming: there's no per-user identity, no scoping of access to specific tools, and no easy way to revoke individual clients without rotating the shared token. Those are real limits, and they're the right limits for the threat model — a personal coaching agent operated by one user. Building auth this way makes the tradeoffs visible: a reviewer can see exactly what the system protects against and what it doesn't, instead of leaning on heavier machinery whose guarantees might not match the actual deployment.
 
 ---
 
