@@ -1,0 +1,31 @@
+# PM Career Coach A2A Server — dependencies
+# Install with: pip install -r a2a_server/requirements.txt
+# (run from the pm_career_coach_app/ directory)
+#
+# Python version: 3.11 ONLY
+# - pydantic-core has no prebuilt Windows wheels for 3.14 (Rust compilation required)
+# - py -3.11 -m venv .venv  ← always use this, not system Python
+
+# A2A SDK — includes route factories, AgentExecutor, InMemoryTaskStore, helpers
+# http-server extra brings starlette + uvicorn
+a2a-sdk[http-server]>=1.0.2,<2.0.0
+
+# ASGI server (also pulled in by http-server extra, listed explicitly for clarity)
+uvicorn[standard]>=0.30.0
+starlette>=0.40.0
+
+# LLM providers
+# anthropic: used by both router.py (tool-use routing) and core/ (skill execution)
+anthropic>=0.40.0
+openai>=1.50.0
+google-genai>=0.8.0
+
+# RAG pipeline (same as MCP server — core/ uses Pinecone for grounded responses)
+pinecone>=3.0.0
+sentence-transformers>=2.7.0
+
+# Utilities
+python-dotenv>=1.0.0
+rich>=13.7,<15.0
+
+protobuf>=6.30.0,<7.0.0
